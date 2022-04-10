@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="description" content="Make sure you drink some water.">
+        <meta name="viewport" content="width=device-width, initial-scale=0.8">
+        <title>404</title>
+        <link rel="stylesheet" type="text/css" href="/css/global.css">
+    </head>
+    <body>
+        {% import 'macros.html' as macros %}
+
+        {{ macros.menu() }}
+
+        <br><br><br><br><br><br><br><br>
+        <div class="container">
+            <div class="card">
+                <p>Page Not Found</p>
+                <div class="card-text-divider"></div>
+                <p>You should probably <a href="/">head back home</a>.</p>
+            </div>
+        </div>
+    </body>
+</html>
