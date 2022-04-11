@@ -1,5 +1,5 @@
 import { Area } from './models/area.js';
-import { NPC, Ray, Sprite } from "./models/sprite.js";
+import { NPC, Ray, Player } from "./models/sprite.js";
 
 class GameArea {
     textures = {};
@@ -7,10 +7,11 @@ class GameArea {
 
     };
     canvas = document.getElementById('game');
-    player = new NPC(this.canvas, 'player', {species: 'fox', affiliation: 'player'});
+    player = new Player(this.canvas, 'player', {species: 'fox', affiliation: 'player'});
 
     start() {
         this.prepareTextures();
+        this.player.setup(this);
 
         this.areas['grasslands'] = new Area(this, 'grasslands', 'ground1');
         this.areas['desert'] = new Area(this, 'desert', 'ground2');
@@ -68,6 +69,24 @@ class GameArea {
         if (this.pressedKeys['2']) {
             this.transitionArea('desert');
             delete this.pressedKeys['2'];
+        }
+        if (this.pressedKeys['w'] || this.pressedKeys['ArrowUp']) {
+            this.pressedKeys['w'] ? delete this.pressedKeys['w'] : delete this.pressedKeys['ArrowUp'];
+
+            if (this.currentArea) {
+                if (this.currentArea.activeDialogues.length > 0) {
+                    this.currentArea.activeDialogues[0].moveCursor(-1);
+                }
+            }
+        }
+        if (this.pressedKeys['s'] || this.pressedKeys['ArrowDown']) {
+            this.pressedKeys['s'] ? delete this.pressedKeys['s'] : delete this.pressedKeys['ArrowDown'];
+
+            if (this.currentArea) {
+                if (this.currentArea.activeDialogues.length > 0) {
+                    this.currentArea.activeDialogues[0].moveCursor(1);
+                }
+            }
         }
 
         if (!this.player.denyInput) {

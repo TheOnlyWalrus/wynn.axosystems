@@ -19,9 +19,10 @@ export class Area {
         this.sprites[1].pos = {x: 500, y: 350};
         this.sprites[1].setup(this.game);
 
-        this.sprites[2] = new Sprite(this.game.canvas, 'wall', {species: 'wall', affiliation: 'boundary'});
+        this.sprites[2] = new NPC(this.game.canvas, 'wall', {species: 'wall', affiliation: 'boundary'});
         this.sprites[2].dims = {w: 10, h: 200};
         this.sprites[2].pos = {x: 900, y: 500};
+        this.sprites[2].setup(this.game);
     }
 
     drawBg() {
@@ -37,8 +38,10 @@ export class Area {
     update() {
         this.drawBg();
 
-        // Draw sprites and check ray
+        // Draw sprites, check ray, check player radius
         this.sprites.forEach(s => {
+            this.game.player.detectWithinRadius(s);
+
             if (this.game.ray && s !== this.game.player && this.game.ray !== s) {
                 if (this.game.ray.isColliding(s)) {
                     this.game.ray.checkColliding(s);
