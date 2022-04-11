@@ -260,16 +260,16 @@ export class NPC extends Sprite {
             other.movementLocked = true;
             let l = this.dialogue[this.dialogueNum];
             let d = new DialogueBox(this.canvas, l.from, l.textLines);
-            this.game.dialogues.push(d);
+            this.game.pushDialogue(d);
             this.dialogueNum += 1;
         } else {
             if (this.dialogueNum >= this.dialogue.size - 1 || this.dialogue[this.dialogueNum] === undefined) {
                 this.dialogueNum = 0;
                 other.movementLocked = false;
-                this.game.dialogues.pop();
+                this.game.popDialogue();
             } else {
-                this.game.dialogues[0].textLines = this.dialogue[this.dialogueNum].textLines;
-                this.game.dialogues[0].author = this.dialogue[this.dialogueNum].from;
+                this.game.currentArea.activeDialogues[0].textLines = this.dialogue[this.dialogueNum].textLines;
+                this.game.currentArea.activeDialogues[0].author = this.dialogue[this.dialogueNum].from;
                 this.dialogueNum += 1;
             }
         }
