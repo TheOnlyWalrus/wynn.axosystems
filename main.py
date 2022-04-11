@@ -27,18 +27,20 @@ class WebDBConnection(BaseDBConnection):
         return user
 
 
+ALLOWED_EXTENSIONS = {'png', 'gif', 'jpg', 'jpeg', 'svg', 'mp4', 'jfif'}
 ASSET_DIR = '/home/web/cdn/assets'
 
 app = FastAPI()
 db = WebDBConnection('192.168.0.129', 'axosystems', 'web')
 app.mount('/css', StaticFiles(directory='web/static/css'), name='css')
 app.mount('/js', StaticFiles(directory='web/static/js'), name='js')
+app.mount('/img', StaticFiles(directory='web/static/img'), name='img')
 
 templates = Jinja2Templates(directory='web/templates')
 
 
 def check_file(f):
-    return f.split('.')[-1].lower() in {'png', 'gif', 'jpg', 'jpeg', 'svg', 'mp4', 'jfif'}
+    return f.split('.')[-1].lower() in ALLOWED_EXTENSIONS
 
 
 def random_string(length):
@@ -68,17 +70,22 @@ async def about(request: Request):
 
 
 @app.get('/projects')
-async def about(request: Request):
+async def projects(request: Request):
     return templates.TemplateResponse('projects.html', {'request': request})
 
 
+@app.get('/projects/foxquest')
+async def foxquest(request: Request):
+    return templates.TemplateResponse('foxquest.html', {'request': request})
+
+
 @app.get('/projects/zote')
-async def about(request: Request):
+async def projects_zote(request: Request):
     return templates.TemplateResponse('zote.html', {'request': request})
 
 
 @app.get('/water')
-async def about(request: Request):
+async def water(request: Request):
     return templates.TemplateResponse('water.html', {'request': request})
 
 
