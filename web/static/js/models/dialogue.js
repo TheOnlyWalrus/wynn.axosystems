@@ -52,6 +52,7 @@ export class DialogueBox {
         for (let i = 0; i < this.textLines.length; i++) {
             let text = this.textLines[i];
             if (text.text) {
+                this.context.fillStyle = '#FFFAA0';
                 text = text.text;
             }
             if (this.cursor === i) {
