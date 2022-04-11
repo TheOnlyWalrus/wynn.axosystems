@@ -1,0 +1,26 @@
+body {
+    background: rgb(167, 0, 255);
+    background: linear-gradient(90deg, rgba(167, 0, 255, 1) 0%, rgba(94, 76, 255, 1) 40%, rgba(0, 255, 184, 1) 100%);
+    background-size: 200% 200%;
+    animation: GradientMove 10s ease infinite;
+    -moz-animation: GradientMove 10s ease infinite;
+    -webkit-animation: GradientMove 10s ease infinite;
+}
+
+@keyframes GradientMove {
+    0% {background-position: 0 100%}
+    50% {background-position: 100% 0}
+    100% {background-position: 0 100%}
+}
+
+@-moz-keyframes GradientMove {
+    0% {background-position: 0 100%}
+    50% {background-position: 100% 0}
+    100% {background-position: 0 100%}
+}
+
+@-webkit-keyframes GradientMove {
+    0% {background-position: 0 100%}
+    50% {background-position: 100% 0}
+    100% {background-position: 0 100%}
+}
