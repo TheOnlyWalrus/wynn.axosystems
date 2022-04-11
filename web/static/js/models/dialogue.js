@@ -6,12 +6,34 @@ export class DialogueBox {
         x: 250,
         y: 90
     }
+    cursor = 0;
+    textLines;
 
     constructor(canvas, author, textLines) {
         this.canvas = canvas;
         this.context = this.canvas.getContext('2d');
-        this.textLines = textLines;
+        this.setText(textLines);
         this.author = author;
+    }
+
+    setText(lines) {
+        this.textLines = lines;
+        let i;
+        for (i = 0; i < lines.length; i++) {
+            if (lines[i].redir) {
+                break;
+            }
+
+            if (!lines[i].redir && i === lines.length - 1) {
+                i = lines.length;
+            }
+        }
+
+        if (i === lines.length) {
+            this.delCursor();
+        } else {
+            this.cursor = i;
+        }
     }
 
     draw() {
@@ -22,14 +44,55 @@ export class DialogueBox {
         this.context.lineWidth = 2.5;
         this.context.strokeRect(this.pos.x - this.width / 2 + 5, this.pos.y - this.height / 2 + 5, this.width - 10, this.height - 10);
 
-
         this.context.font = '20px courier new';
         this.context.fillStyle = '#66CBFF';
         this.context.fillText(this.author.name, this.pos.x - this.width / 2 + 15, this.pos.y - this.height / 2 + 25);
 
         this.context.fillStyle = '#FFFFFF';
         for (let i = 0; i < this.textLines.length; i++) {
-            this.context.fillText(this.textLines[i], this.pos.x - this.width / 2 + 15, this.pos.y - this.height / 2 + 50 + i * this.lineSpacing);
+            let text = this.textLines[i];
+            if (text.text) {
+                this.context.fillStyle = '#FFFAA0';
+                text = text.text;
+            }
+            if (this.cursor === i) {
+                text = '> ' + text;
+            }
+            this.context.fillText(text, this.pos.x - this.width / 2 + 15, this.pos.y - this.height / 2 + 50 + i * this.lineSpacing);
         }
+    }
+
+    getFirstChoiceIdx() {
+        let i;
+        for (i = 0; i < this.textLines.length; i++) {
+            if (this.textLines[i].redir) {
+                break;
+            }
+
+            if (!this.textLines[i].redir && i === this.textLines.length - 1) {
+                i = this.textLines.length;
+            }
+        }
+        console.log(i);
+
+        return i;
+    }
+
+    createCursor(pos) {
+        this.cursor = pos ? pos : 0;
+    }
+
+    moveCursor(dir) {
+        if (this.cursor + dir >= this.textLines.length) {
+            this.cursor = this.getFirstChoiceIdx();
+        } else if (this.cursor + dir < this.getFirstChoiceIdx()) {
+            this.cursor = this.textLines.length - 1;
+        } else {
+            this.cursor += dir;
+        }
+    }
+
+    delCursor() {
+        this.cursor = null;
     }
 }

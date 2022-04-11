@@ -83,6 +83,12 @@ export class Sprite {
         }
     }
 
+    drawName() {
+        this.context.font = '14px courier new';
+        this.context.fillStyle = '#000000';  // Figure out how to position automatically
+        this.context.fillText(this.name, this.pos.x - this.dims.h / 2 - 15, this.pos.y - this.dims.h / 2 - 7);
+    }
+
     onScreen() {
         // let xMe = this.pos.x - this.dims.w / 2;
         // let yMe = this.pos.y - this.dims.h / 2;
@@ -172,6 +178,52 @@ export class Sprite {
     }
 }
 
+export class Player extends Sprite {
+    detectRadius = 80;
+    game;
+
+    setup(game) {
+        this.game = game;
+    }
+
+    drawRadius() {
+        this.context.beginPath();
+        this.context.strokeStyle = '#000000';
+        this.context.lineWidth = 1.0;
+        this.context.arc(this.pos.x, this.pos.y, this.detectRadius, 0, 2 * Math.PI);
+        this.context.stroke();
+    }
+
+    draw() {
+        super.draw();
+
+        // this.drawRadius();
+    }
+
+    isInRadius(other) {
+        let distX = Math.abs(this.pos.x - other.pos.x - other.dims.w / 2);
+        let distY = Math.abs(this.pos.y - other.pos.y - other.dims.h / 2);
+
+        if (distX > other.dims.w / 2 + this.detectRadius) { return false; }
+        if (distY > other.dims.h / 2 + this.detectRadius) { return false; }
+
+        if (distX <= other.dims.w / 2) { return true; }
+        if (distY <= other.dims.h / 2) { return true; }
+
+        let dx = distX - other.dims.w / 2;
+        let dy = distY - other.dims.h / 2;
+        return dx * dx + dy * dy <= this.detectRadius * this.detectRadius;
+    }
+
+    detectWithinRadius(other) {
+        if (other !== this && other.name !== 'wall') {
+            if (this.isInRadius(other)) {
+                other.drawName();
+            }
+        }
+    }
+}
+
 export class Ray extends Sprite {
     rayWidth = 10
 
@@ -230,25 +282,21 @@ export class NPC extends Sprite {
     }
 
     loadDialogue() {
-        if (this.name === 'npc1') {  // TODO: maybe load a dialogue file by name
-            this.dialogue = {
-                0: {
-                    textLines: [
-                        'Hello from line 1!',
-                        'Hello from line 2!'
-                    ],
-                    from: this
-                },
-                1: {
-                    textLines: ['2nd dialogue!'],
-                    from: this
-                },
-                2: {
-                    textLines: ['3rd dialogue!'],
-                    from: this.game.player
-                }
-            }
-        }
+        fetch(`../../json/dialogue/${this.name}.json`)
+            .then(res => res.json())
+            .then(r => {
+                Object.keys(r).map((key, i) => {
+                    let from = r[key].from;
+
+                    if (from === 'player') {
+                        r[key].from = this.game.player;
+                    } else if (from === 'self') {
+                        r[key].from = this;
+                    }
+                });
+
+                this.dialogue = r;
+            });
     }
 
     checkColliding(other) {
@@ -256,21 +304,37 @@ export class NPC extends Sprite {
     }
 
     talk(other) {
-        if (this.dialogueNum === 0) {
+        if (this.game.currentArea.activeDialogues.length === 0) {
             other.movementLocked = true;
             let l = this.dialogue[this.dialogueNum];
             let d = new DialogueBox(this.canvas, l.from, l.textLines);
-            this.game.dialogues.push(d);
-            this.dialogueNum += 1;
+
+            this.game.pushDialogue(d);
         } else {
-            if (this.dialogueNum >= this.dialogue.size - 1 || this.dialogue[this.dialogueNum] === undefined) {
+            if (this.dialogueNum >= this.dialogue.size || this.dialogue[this.dialogueNum] === undefined) {
                 this.dialogueNum = 0;
                 other.movementLocked = false;
-                this.game.dialogues.pop();
+                this.game.popDialogue();
             } else {
-                this.game.dialogues[0].textLines = this.dialogue[this.dialogueNum].textLines;
-                this.game.dialogues[0].author = this.dialogue[this.dialogueNum].from;
-                this.dialogueNum += 1;
+                if (
+                    this.dialogue[this.dialogueNum].textLines[this.game.currentArea.activeDialogues[0].cursor] !== undefined &&
+                    this.dialogue[this.dialogueNum].textLines[this.game.currentArea.activeDialogues[0].cursor].redir
+                ) {
+                    this.dialogueNum = this.dialogue[this.dialogueNum].textLines[this.game.currentArea.activeDialogues[0].cursor].redir;
+                } else if (this.dialogue[this.dialogueNum].redir !== undefined) {
+                    this.dialogueNum = this.dialogue[this.dialogueNum].redir;
+                } else {
+                    this.dialogueNum += 1;
+                }
+
+                if (this.dialogue[this.dialogueNum] !== undefined) {
+                    this.game.currentArea.activeDialogues[0].setText(this.dialogue[this.dialogueNum].textLines);
+                    this.game.currentArea.activeDialogues[0].author = this.dialogue[this.dialogueNum].from;
+                } else {
+                    this.dialogueNum = 0;
+                    other.movementLocked = false;
+                    this.game.popDialogue();
+                }
             }
         }
     }
