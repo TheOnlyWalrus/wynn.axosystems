@@ -282,47 +282,21 @@ export class NPC extends Sprite {
     }
 
     loadDialogue() {
-        if (this.name === 'npc1') {  // TODO: maybe load a dialogue file by name
-            this.dialogue = {
-                0: {
-                    textLines: [
-                        'Hello from line 1!',
-                        'Hello from line 2!'
-                    ],
-                    from: this
-                },
-                1: {
-                    textLines: [
-                        'froot',
-                        {
-                            text: 'apple',
-                            redir: 2
-                        },
-                        {
-                            text: 'orang',
-                            redir: 3
-                        }
-                    ],
-                    from: this
-                },
-                2: {
-                    textLines: ['apple!'],
-                    from: this.game.player,
-                    redir: 4
-                },
-                3: {
-                    textLines: ['orang!'],
-                    from: this.game.player,
-                    redir: 4
-                },
-                4: {
-                    textLines: ['lmao that sucks'],
-                    from: this
-                }
-            }
-        } else if (this.name === 'wall') {
-            this.dialogue = {0: {textLines: ['i am a wall'], from: this}}
-        }
+        fetch(`../../json/dialogue/${this.name}.json`)
+            .then(res => res.json())
+            .then(r => {
+                Object.keys(r).map((key, i) => {
+                    let from = r[key].from;
+
+                    if (from === 'player') {
+                        r[key].from = this.game.player;
+                    } else if (from === 'self') {
+                        r[key].from = this;
+                    }
+                });
+
+                this.dialogue = r;
+            });
     }
 
     checkColliding(other) {

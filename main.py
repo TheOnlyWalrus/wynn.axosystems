@@ -35,6 +35,7 @@ db = WebDBConnection('192.168.0.129', 'axosystems', 'web')
 app.mount('/css', StaticFiles(directory='web/static/css'), name='css')
 app.mount('/js', StaticFiles(directory='web/static/js'), name='js')
 app.mount('/img', StaticFiles(directory='web/static/img'), name='img')
+app.mount('/json', StaticFiles(directory='web/static/json'), name='json')
 
 templates = Jinja2Templates(directory='web/templates')
 

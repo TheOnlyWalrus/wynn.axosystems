@@ -1,0 +1,37 @@
+{
+  "0": {
+    "textLines": [
+      "Hello from line 1!",
+      "Hello from line 2!"
+    ],
+    "from": "self"
+  },
+  "1": {
+      "textLines": [
+          "froot",
+          {
+              "text": "apple",
+              "redir": 2
+          },
+          {
+              "text": "orang",
+              "redir": 3
+          }
+      ],
+      "from": "self"
+  },
+  "2": {
+      "textLines": ["apple!"],
+      "from": "player",
+      "redir": 4
+  },
+  "3": {
+      "textLines": ["orang!"],
+      "from": "player",
+      "redir": 4
+  },
+  "4": {
+      "textLines": ["lmao that sucks"],
+      "from": "self"
+  }
+}
