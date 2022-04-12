@@ -45,6 +45,7 @@ class GameArea {
 
         let move = {x: 0, y: 0};
 
+        // probably handle these in each Area or make a call to the currentArea to handle
         if (this.heldKeys['w'] || this.heldKeys['ArrowUp']) {
             move.y -= 1;
         }

@@ -1,19 +1,42 @@
-export class DialogueBox {
-    lineSpacing = 20;
-    width = 540;
-    height = 165;
-    pos = {
-        x: 295,
-        y: 110
+export class DisplayBox {
+    width;
+    height;
+    pos;
+
+    constructor(canvas, x, y, w, h, toDisplay) {
+        this.display = toDisplay;
+        this.canvas = canvas;
+        // this.author = author;
+        this.pos = {x:x,y:y};
+        this.width = w;
+        this.height = h;
+        this.context = this.canvas.getContext('2d');
     }
+
+    draw() {
+        console.log('main')
+
+        // main rect
+        this.context.fillStyle = '#000000';
+        this.context.fillRect(this.pos.x - this.width / 2, this.pos.y - this.height / 2, this.width, this.height);
+
+        // purple inner rect
+        this.context.strokeStyle = '#5A008A';
+        this.context.lineWidth = 2.5;
+        this.context.strokeRect(this.pos.x - this.width / 2 + 5, this.pos.y - this.height / 2 + 5, this.width - 10, this.height - 10);
+    }
+}
+
+export class DialogueBox extends DisplayBox {
+    lineSpacing = 20;
     cursor = 0;
     textLines;
     textMaxWidth = 510
 
     constructor(canvas, author, textLines) {
-        this.canvas = canvas;
-        this.context = this.canvas.getContext('2d');
+        super(canvas, 295, 110, 540, 165, textLines);
         this.author = author;
+
         this.setText(textLines);
     }
 
@@ -50,16 +73,10 @@ export class DialogueBox {
     }
 
     draw() {
+        super.draw();
+        console.log('e')
+
         let lineNo = 0;
-
-        // main rect
-        this.context.fillStyle = '#000000';
-        this.context.fillRect(this.pos.x - this.width / 2, this.pos.y - this.height / 2, this.width, this.height);
-
-        // purple inner rect
-        this.context.strokeStyle = '#5A008A';
-        this.context.lineWidth = 2.5;
-        this.context.strokeRect(this.pos.x - this.width / 2 + 5, this.pos.y - this.height / 2 + 5, this.width - 10, this.height - 10);
 
         // show name at top of box
         this.context.font = '20px courier new';
