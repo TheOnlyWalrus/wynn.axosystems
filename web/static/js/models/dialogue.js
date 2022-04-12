@@ -1,93 +1,114 @@
 export class DialogueBox {
     lineSpacing = 20;
-    width = 450;
-    height = 125;
+    width = 540;
+    height = 165;
     pos = {
-        x: 250,
-        y: 90
+        x: 295,
+        y: 110
     }
     cursor = 0;
     textLines;
+    textMaxWidth = 510
 
     constructor(canvas, author, textLines) {
         this.canvas = canvas;
         this.context = this.canvas.getContext('2d');
-        this.setText(textLines);
         this.author = author;
+        this.setText(textLines);
+    }
+
+    splitText(text) {
+        let words = text.split(' ');
+        let lines = [];
+        let cur = words[0];
+
+        for (let i = 1; i < words.length; i++) {
+            let word = words[i];
+            let width = this.context.measureText(cur + ' ' + word).width;
+
+            if (width <= this.textMaxWidth) {
+                cur += ' ' + word;
+            } else {
+                lines.push(cur);
+                cur = word;
+            }
+        }
+
+        lines.push(cur);
+        return lines;
     }
 
     setText(lines) {
         this.textLines = lines;
-        let i;
-        for (i = 0; i < lines.length; i++) {
-            if (lines[i].redir) {
-                break;
-            }
+        let i = this.getFirstChoiceIdx();  // get first choice
 
-            if (!lines[i].redir && i === lines.length - 1) {
-                i = lines.length;
-            }
-        }
-
-        if (i === lines.length) {
+        if (i === lines.length) {  // if no choices, delete cursor
             this.delCursor();
-        } else {
+        } else {  // set cursor to first choice
             this.cursor = i;
         }
     }
 
     draw() {
+        let lineNo = 0;
+
+        // main rect
         this.context.fillStyle = '#000000';
         this.context.fillRect(this.pos.x - this.width / 2, this.pos.y - this.height / 2, this.width, this.height);
 
+        // purple inner rect
         this.context.strokeStyle = '#5A008A';
         this.context.lineWidth = 2.5;
         this.context.strokeRect(this.pos.x - this.width / 2 + 5, this.pos.y - this.height / 2 + 5, this.width - 10, this.height - 10);
 
+        // show name at top of box
         this.context.font = '20px courier new';
         this.context.fillStyle = '#66CBFF';
         this.context.fillText(this.author.name, this.pos.x - this.width / 2 + 15, this.pos.y - this.height / 2 + 25);
 
+        // npc dialogue
         this.context.fillStyle = '#FFFFFF';
         for (let i = 0; i < this.textLines.length; i++) {
             let text = this.textLines[i];
-            if (text.text) {
+            if (text.text) {  // option check
                 this.context.fillStyle = '#FFFAA0';
                 text = text.text;
             }
-            if (this.cursor === i) {
+            if (this.cursor === i) {  // add cursor to text if option is selected
                 text = '> ' + text;
             }
-            this.context.fillText(text, this.pos.x - this.width / 2 + 15, this.pos.y - this.height / 2 + 50 + i * this.lineSpacing);
+
+            text = this.splitText(text);  // text-wrap
+
+            for (let j = 0; j < text.length; j++) {  // for each line in text
+                this.context.fillText(text[j], this.pos.x - this.width / 2 + 15, this.pos.y - this.height / 2 + 50 + lineNo * this.lineSpacing);
+
+                lineNo += 1;
+            }
         }
     }
 
     getFirstChoiceIdx() {
         let i;
         for (i = 0; i < this.textLines.length; i++) {
-            if (this.textLines[i].redir) {
+            if (this.textLines[i].redir) {  // if choice found
                 break;
             }
 
-            if (!this.textLines[i].redir && i === this.textLines.length - 1) {
+            if (!this.textLines[i].redir && i === this.textLines.length - 1) {  // if choice not found and at end of list
                 i = this.textLines.length;
             }
         }
-        console.log(i);
 
         return i;
     }
 
-    createCursor(pos) {
-        this.cursor = pos ? pos : 0;
-    }
-
     moveCursor(dir) {
-        if (this.cursor + dir >= this.textLines.length) {
+        if (this.cursor + dir >= this.textLines.length) {  // cursor at very bottom and trying to move down, set to first
             this.cursor = this.getFirstChoiceIdx();
-        } else if (this.cursor + dir < this.getFirstChoiceIdx()) {
+        } else if (this.cursor + dir < this.getFirstChoiceIdx()) {  // cursor at very top and trying to move up, set to last
             this.cursor = this.textLines.length - 1;
-        } else {
+        } else {  // normal cursor movement
             this.cursor += dir;
         }
     }
