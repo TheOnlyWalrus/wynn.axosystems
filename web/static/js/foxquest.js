@@ -76,7 +76,7 @@ class GameArea {
             this.pressedKeys['w'] ? delete this.pressedKeys['w'] : delete this.heldKeys['ArrowUp'];
 
             if (this.currentArea) {
-                if (this.currentArea.activeDialogues.length > 0) {;
+                if (this.currentArea.activeDialogues.length > 0) {
                     this.currentArea.activeDialogues[0].moveCursor(-1);
                 }
             }
