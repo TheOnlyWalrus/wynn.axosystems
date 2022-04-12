@@ -2,20 +2,20 @@ export class DisplayBox {
     width;
     height;
     pos;
+    screenPos;
 
     constructor(canvas, x, y, w, h, toDisplay) {
         this.display = toDisplay;
         this.canvas = canvas;
         // this.author = author;
-        this.pos = {x:x,y:y};
+        this.screenPos = {x:x,y:y};
+        this.pos = this.screenPos;
         this.width = w;
         this.height = h;
         this.context = this.canvas.getContext('2d');
     }
 
     draw() {
-        console.log('main')
-
         // main rect
         this.context.fillStyle = '#000000';
         this.context.fillRect(this.pos.x - this.width / 2, this.pos.y - this.height / 2, this.width, this.height);
@@ -74,7 +74,6 @@ export class DialogueBox extends DisplayBox {
 
     draw() {
         super.draw();
-        console.log('e')
 
         let lineNo = 0;
 

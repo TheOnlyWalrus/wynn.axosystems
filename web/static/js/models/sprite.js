@@ -20,6 +20,7 @@ export class Sprite {
         right: 0
     };
     move = {x:0,y:0}
+    area;
 
     constructor(canvas, name, info) {
         this.canvas = canvas;
@@ -30,6 +31,10 @@ export class Sprite {
         this._vel = {x:0,y:0};
     }
 
+    setArea(area) {
+        this.area = area;
+    }
+
     draw() {
         if (this.onScreen()) {
             let xMe = this.pos.x - this.dims.w / 2;
@@ -37,7 +42,7 @@ export class Sprite {
 
             if (
                 xMe <= 0 ||
-                xMe + this.dims.w >= this.canvas.width
+                xMe + this.dims.w >= this.area.width
             ) {
                 if (this.move.x !== 0) {
                     let sign = this.move.x / Math.abs(this.move.x);
@@ -47,7 +52,7 @@ export class Sprite {
             }
             if (
                 yMe <= 0 ||
-                yMe + this.dims.h >= this.canvas.height
+                yMe + this.dims.h >= this.area.height
             ) {
                 if (this.move.y !== 0) {
                     let sign = this.move.y / Math.abs(this.move.y);
