@@ -95,7 +95,6 @@ class GameArea {
             this.player.move = move;
         }
 
-
         let camX = -this.player.pos.x + this.canvas.width / 2;
         let camY = -this.player.pos.y + this.canvas.height / 2;
 
@@ -106,12 +105,6 @@ class GameArea {
             this.currentArea.activeDialogues[0].pos = {
                 x: d.screenPos.x + this.player.pos.x - this.canvas.width / 2,
                 y: d.screenPos.y + this.player.pos.y - this.canvas.height / 2
-            }
-
-            if (this.pressedKeys['3']) {
-                console.log(`dX: ${d.screenPos.x}, dY: ${d.screenPos.y}, cX: ${camX}, cY: ${camY}, dH: ${d.height}, dW: ${d.width}`);
-
-                delete this.pressedKeys['3'];
             }
         }
 
@@ -133,7 +126,9 @@ class GameArea {
     }
 
     transitionArea(area) {
+        // clearInterval(this.updater);
         this.currentArea = this.areas[area];
+        // this.updater = this.currentArea.update();
     }
 
     pushDialogue(dialogue) {

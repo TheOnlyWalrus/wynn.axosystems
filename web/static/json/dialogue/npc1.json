@@ -9,7 +9,7 @@
   },
   "1": {
     "textLines": [
-        "froot",
+        "pick froot",
         {
             "text": "apple",
             "redir": 2
