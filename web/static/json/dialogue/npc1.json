@@ -9,19 +9,24 @@
   },
   "1": {
     "textLines": [
-        "pick froot",
-        {
-            "text": "apple",
-            "redir": 2
-        },
-        {
-            "text": "orang",
-            "redir": 3
-        },
-        {
-            "text": "strawb",
-            "redir": 4
-        }
+      "pick froot",
+      {
+        "text": "apple",
+        "redir": 2
+      },
+      {
+        "text": "orang",
+        "redir": 3
+      },
+      {
+        "text": "strawb",
+        "redir": 4
+      },
+      {
+        "text": "open_gui",
+        "action": "open_gui",
+        "redir": "shop_enter"
+      }
     ],
     "from": "self"
   },
@@ -47,6 +52,139 @@
   },
   "6": {
     "textLines": ["good choice"],
+    "from": "self",
+    "redir": -1
+  },
+  "shop_leave": {
+    "textLines": ["you suck"],
+    "from": "self",
+    "redir": 8
+  },
+  "8": {
+    "textLines": ["yeah lmao"],
+    "from": "player",
+    "redir": -1
+  },
+  "shop_enter": {
+    "textLines": [
+      {
+        "text": "Buy",
+        "redir": "shop_buy"
+      },
+      {
+        "text": "Sell",
+        "redir": "shop_sell"
+      },
+      {
+        "text": "Leave",
+        "redir": "shop_leave"
+      }
+    ],
+    "from": "self"
+  },
+  "shop_buy": {
+    "textLines": [
+      {
+        "text": "10 - Sword",
+        "action": "buy_item",
+        "redirSuccess": "buy_item_success",
+        "redirFail": "buy_item_fail",
+        "redirFailMoney": "buy_item_fail_money",
+        "redirFailSpace": "buy_item_fail_space",
+        "itemId": "0"
+      },
+      {
+        "text": "10 - Shield",
+        "action": "buy_item",
+        "redirSuccess": "buy_item_success",
+        "redirFail": "buy_item_fail",
+        "redirFailMoney": "buy_item_fail_money",
+        "redirFailSpace": "buy_item_fail_space",
+        "itemId": "1"
+      },
+      {
+        "text": "5 - Health Potion",
+        "action": "buy_item",
+        "redirSuccess": "buy_item_success",
+        "redirFail": "buy_item_fail",
+        "redirFailMoney": "buy_item_fail_money",
+        "redirFailSpace": "buy_item_fail_space",
+        "itemId": "2"
+      },
+      {
+        "text": "Exit",
+        "redir": "shop_enter"
+      }
+    ],
+    "from": "self"
+  },
+  "shop_sell": {
+    "textLines": [
+      {
+        "text": "Exit",
+        "redir": "shop_enter"
+      }
+    ],
+    "from": "self"
+  },
+  "buy_item_fail": {
+    "textLines": [
+      "universe says no",
+      {
+        "text": "Exit",
+        "redir": "shop_buy"
+      }
+    ],
+    "from": "self"
+  },
+  "buy_item_success": {
+    "textLines": [
+      "You bought %item_name for %item_cost!",
+      {
+        "text": "Exit",
+        "redir": "shop_buy"
+      }
+    ],
+    "from": "self"
+  },
+  "buy_item_fail_money": {
+    "textLines": [
+      "you have no money idiot",
+      {
+        "text": "Exit",
+        "redir": "shop_buy"
+      }
+    ],
+    "from": "self"
+  },
+  "buy_item_fail_space": {
+    "textLines": [
+      "you have no space dumbass",
+      {
+        "text": "Exit",
+        "redir": "shop_buy"
+      }
+    ],
+    "from": "self"
+  },
+  "sell_item_fail": {
+    "textLines": [
+      "Item could not be sold.",
+      {
+        "text": "Exit",
+        "redir": "shop_sell"
+      }
+    ],
+    "from": "self"
+  },
+  "sell_item_success": {
+    "textLines": [
+      "You sold %item_name for %item_cost!",
+      {
+        "text": "Exit",
+        "redir": "shop_sell"
+      }
+    ],
     "from": "self"
   }
 }

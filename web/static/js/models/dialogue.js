@@ -115,11 +115,11 @@ export class DialogueBox extends DisplayBox {
     getFirstChoiceIdx() {
         let i;
         for (i = 0; i < this.textLines.length; i++) {
-            if (this.textLines[i].redir) {  // if choice found
+            if (this.textLines[i].redir || this.textLines[i].action) {  // if choice found
                 break;
             }
 
-            if (!this.textLines[i].redir && i === this.textLines.length - 1) {  // if choice not found and at end of list
+            if (!this.textLines[i].redir && !this.textLines[i].action && i === this.textLines.length - 1) {  // if choice not found and at end of list
                 i = this.textLines.length;
             }
         }
