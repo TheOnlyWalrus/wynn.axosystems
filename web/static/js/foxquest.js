@@ -72,7 +72,7 @@ class GameArea {
             this.transitionArea('desert');
             delete this.pressedKeys['2'];
         }
-        if (this.pressedKeys['w'] || this.heldKeys['ArrowUp']) {
+        if (this.pressedKeys['w'] || (this.heldKeys['ArrowUp'] && this.currentArea.activeDialogues.length > 0)) {
             this.pressedKeys['w'] ? delete this.pressedKeys['w'] : delete this.heldKeys['ArrowUp'];
 
             if (this.currentArea) {
@@ -81,7 +81,7 @@ class GameArea {
                 }
             }
         }
-        if (this.pressedKeys['s'] || this.heldKeys['ArrowDown']) {
+        if (this.pressedKeys['s'] || (this.heldKeys['ArrowDown'] && this.currentArea.activeDialogues.length > 0)) {
             this.pressedKeys['s'] ? delete this.pressedKeys['s'] : delete this.heldKeys['ArrowDown'];
 
             if (this.currentArea) {
