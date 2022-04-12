@@ -19,20 +19,16 @@ export class Sprite {
         up: 1,
         right: 0
     };
-    move = {x:0,y:0}
+    move = {x:0,y:0};
     area;
 
-    constructor(canvas, name, info) {
-        this.canvas = canvas;
+    constructor(game, name, info) {
+        this.game = game;
+        this.canvas = this.game.canvas;
         this.context = this.canvas.getContext('2d');
         this.name = name;
         this.info = info;
         this.move = {x:0,y:0};
-        this._vel = {x:0,y:0};
-    }
-
-    setArea(area) {
-        this.area = area;
     }
 
     draw() {
@@ -183,12 +179,19 @@ export class Sprite {
     }
 }
 
+export class Enemy extends Sprite {
+    constructor(game, name, info) {
+        super(game, name, info);
+        this.startHealth = info.startHealth;
+        this.maxHealth = info.maxHealth;
+    }
+}
+
 export class Player extends Sprite {
     detectRadius = 80;
-    game;
 
-    setup(game) {
-        this.game = game;
+    constructor(game, name, info) {
+        super(game, name, info);
     }
 
     drawRadius() {
@@ -232,8 +235,9 @@ export class Player extends Sprite {
 export class Ray extends Sprite {
     rayWidth = 10
 
-    constructor(canvas, range) {
-        super(canvas, 'ray', {});
+    constructor(game, range) {
+        super(game, 'ray', {});
+        this.canvas = this.game.canvas;
         this.range = range;
     }
 
@@ -276,13 +280,10 @@ export class NPC extends Sprite {
     dialogue = {};
     game;
 
-    constructor(canvas, name, info) {
-        super(canvas, name, info);
-        this.dialogueNum = 0;
-    }
-
-    setup(game) {
+    constructor(game, name, info) {  // TODO: change canvas to game in every class
+        super(game, name, info);
         this.game = game;
+        this.dialogueNum = 0;
         this.loadDialogue();
     }
 
@@ -312,7 +313,7 @@ export class NPC extends Sprite {
         if (this.game.currentArea.activeDialogues.length === 0) {
             other.movementLocked = true;
             let l = this.dialogue[this.dialogueNum];
-            let d = new DialogueBox(this.canvas, l.from, l.textLines);
+            let d = new DialogueBox(this.game, l.from, l.textLines);
 
             this.game.pushDialogue(d);
         } else {

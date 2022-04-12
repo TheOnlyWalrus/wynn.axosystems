@@ -4,26 +4,27 @@ export class DisplayBox {
     pos;
     screenPos;
 
-    constructor(canvas, x, y, w, h, toDisplay) {
+    constructor(game, x, y, w, h, toDisplay) {
         this.display = toDisplay;
-        this.canvas = canvas;
+        this.game = game;
+        this.context = this.game.context;
         // this.author = author;
         this.screenPos = {x:x,y:y};
         this.pos = this.screenPos;
         this.width = w;
         this.height = h;
-        this.context = this.canvas.getContext('2d');
+        this.context = this.game.getContext();
     }
 
     draw() {
         // main rect
         this.context.fillStyle = '#000000';
-        this.context.fillRect(this.pos.x - this.width / 2, this.pos.y - this.height / 2, this.width, this.height);
+        this.context.fillRect(this.pos.x - this.width / 1.7 - 5, this.pos.y - this.height * 1.5 - 5, this.width, this.height);
 
         // purple inner rect
         this.context.strokeStyle = '#5A008A';
         this.context.lineWidth = 2.5;
-        this.context.strokeRect(this.pos.x - this.width / 2 + 5, this.pos.y - this.height / 2 + 5, this.width - 10, this.height - 10);
+        this.context.strokeRect(this.pos.x - this.width / 1.7, this.pos.y - this.height * 1.5, this.width - 10, this.height - 10);
     }
 }
 
@@ -33,8 +34,8 @@ export class DialogueBox extends DisplayBox {
     textLines;
     textMaxWidth = 510
 
-    constructor(canvas, author, textLines) {
-        super(canvas, 295, 110, 540, 165, textLines);
+    constructor(game, author, textLines) {
+        super(game, 295, 110, 540, 165, textLines);
         this.author = author;
 
         this.setText(textLines);
@@ -73,7 +74,14 @@ export class DialogueBox extends DisplayBox {
     }
 
     draw() {
-        super.draw();
+        // main rect
+        this.context.fillStyle = '#000000';
+        this.context.fillRect(this.pos.x - this.width / 2, this.pos.y - this.height / 2, this.width, this.height);
+
+        // purple inner rect
+        this.context.strokeStyle = '#5A008A';
+        this.context.lineWidth = 2.5;
+        this.context.strokeRect(this.pos.x - this.width / 2 + 5, this.pos.y - this.height / 2 + 5, this.width - 10, this.height - 10);
 
         let lineNo = 0;
 
