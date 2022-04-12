@@ -3,6 +3,7 @@ export class DisplayBox {
     height;
     pos;
     screenPos;
+    lineSpacing = 20;
 
     constructor(game, x, y, w, h, toDisplay) {
         this.display = toDisplay;
@@ -26,10 +27,19 @@ export class DisplayBox {
         this.context.lineWidth = 2.5;
         this.context.strokeRect(this.pos.x - this.width / 1.7, this.pos.y - this.height * 1.5, this.width - 10, this.height - 10);
     }
+
+    writeText(lineNo, text) {
+        this.context.fillStyle = '#FFFFFF';
+        this.context.font = '20px courier new';
+        this.context.fillText(text, this.pos.x - this.width / 1.7 + 10, this.pos.y - this.height * 1.5 + this.lineSpacing * lineNo);
+    }
+
+    getTextWidth(text) {
+        return this.context.measureText(text).width;
+    }
 }
 
 export class DialogueBox extends DisplayBox {
-    lineSpacing = 20;
     cursor = 0;
     textLines;
     textMaxWidth = 510
@@ -139,5 +149,77 @@ export class DialogueBox extends DisplayBox {
 
     delCursor() {
         this.cursor = null;
+    }
+}
+
+export class InventoryBox extends DisplayBox {
+    cursor = 0;
+    viewingInfo = false;
+    itemView = {};
+
+    constructor(game, x, y, w, h) {
+        super(game, x, y, w, h, null);
+
+        this.infoBox = new DisplayBox(this.game, x, y, 500, 100, null);
+    }
+
+    draw() {
+        super.draw();
+
+        if (this.items !== this.game.player.inventory) {
+            this.items = this.game.player.inventory;
+        }
+
+        // show name at top of box
+        this.context.font = '20px courier new';
+        this.context.fillStyle = '#66CBFF';
+        this.context.fillText('Inventory', this.pos.x - 120, this.pos.y - this.height * 1.45);
+
+        for (let i = 0; i < this.items.length; i++) {
+            let item = this.items[i];
+            let itemName = item.name;
+
+            if (this.cursor === i) {
+                itemName = '> ' + itemName;
+            }
+
+            this.context.font = '20px courier new';
+            this.context.fillStyle = '#FFFFFF';
+            this.context.fillText(itemName, this.pos.x - 120, this.pos.y - this.height * 1.45 + (i + 1) * 20);
+        }
+
+        // figure out how to select items
+
+        if (this.viewingInfo) {
+            this.infoBox.pos = {
+                x: this.pos.x,
+                y: this.pos.y - 250
+            };
+            this.infoBox.draw();
+            this.infoBox.writeText(1, this.itemView.name);
+            this.infoBox.writeText(2, this.itemView.description);
+            // draw item info
+        }
+    }
+
+    moveCursor(dir) {
+        if (!this.viewingInfo) {
+            if (this.cursor + dir >= this.items.length) {  // cursor at very bottom and trying to move down, set to first
+                this.cursor = 0;
+            } else if (this.cursor + dir < 0) {  // cursor at very top and trying to move up, set to last
+                this.cursor = this.items.length - 1;
+            } else {  // normal cursor movement
+                this.cursor += dir;
+            }
+        }
+    }
+
+    select() {
+        if (!this.viewingInfo && this.items[this.cursor]) {
+            this.viewingInfo = true;
+            this.itemView = this.items[this.cursor];
+        } else if (this.viewingInfo) {
+            this.viewingInfo = false;
+        }
     }
 }

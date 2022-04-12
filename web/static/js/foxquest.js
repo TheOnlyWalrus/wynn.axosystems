@@ -72,9 +72,17 @@ class GameArea {
             move.x += 1;
         }
         if (this.pressedKeys['e']) {
-            this.ray = new Ray(this, 100);
-            this.ray.setup(this.player, 'interact')
+            if (!this.player.showInventory) {
+                this.ray = new Ray(this, 100);
+                this.ray.setup(this.player, 'interact')
+            } else {
+                this.player.inventoryBox.select();
+            }
             delete this.pressedKeys['e'];
+        }
+        if (this.pressedKeys['i'] && this.currentArea.activeDialogues.length === 0) {
+            this.player.toggleInventory();
+            delete this.pressedKeys['i'];
         }
         if (this.pressedKeys['1']) {
             this.transitionArea('grasslands');
@@ -94,6 +102,8 @@ class GameArea {
             if (this.currentArea) {
                 if (this.currentArea.activeDialogues.length > 0) {
                     this.currentArea.activeDialogues[0].moveCursor(-1);
+                } else if (this.player.showInventory) {
+                    this.player.inventoryBox.moveCursor(-1)
                 }
             }
         }
@@ -103,6 +113,8 @@ class GameArea {
             if (this.currentArea) {
                 if (this.currentArea.activeDialogues.length > 0) {
                     this.currentArea.activeDialogues[0].moveCursor(1);
+                } else if (this.player.showInventory) {
+                    this.player.inventoryBox.moveCursor(1)
                 }
             }
         }

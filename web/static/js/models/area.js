@@ -64,9 +64,9 @@ export class Grasslands extends Area {
         this.sprites[0] = this.game.player;
         this.sprites[0].dims = {w: 20, h: 20};
         this.sprites[0].pos = {x: 100, y: 100};
-        this.game.player.inventory.push({name: 'sword', id: 0, price: 10, sellPrice: 5});
-        this.game.player.inventory.push({name: 'sword', id: 0, price: 10, sellPrice: 5});
-        this.game.player.inventory.push({name: 'sword', id: 0, price: 10, sellPrice: 5});
+        this.game.player.inventory.push({name: 'Sword', price: 10, sellPrice: 5, description: 'A basic sword.', type: 'weapon', damage: 5, id: 0});
+        this.game.player.inventory.push({name: 'Sword', price: 10, sellPrice: 5, description: 'A basic sword.', type: 'weapon', damage: 5, id: 0});
+        this.game.player.inventory.push({name: 'Sword', price: 10, sellPrice: 5, description: 'A basic sword.', type: 'weapon', damage: 5, id: 0});
 
         this.sprites[1] = new NPC(this.game, 'npc1', {species: 'fox', affiliation: 'friendly'});
         this.sprites[1].dims = {w: 20, h: 20};
@@ -130,7 +130,7 @@ export class CombatArea extends Area {
 
         this.mainBox.pos = {
             x: this.mainBox.screenPos.x - this.game.cameraX,
-            y: this.mainBox.screenPos.y + this.game.cameraY
+            y: this.mainBox.screenPos.y - this.game.cameraY + this.game.canvas.height - (this.mainBox.height + 50)
         };
 
         //

@@ -1,4 +1,4 @@
-import { DialogueBox } from './dialogue.js'
+import {DialogueBox, DisplayBox, InventoryBox} from './dialogue.js'
 
 export class Sprite {
     image = null;
@@ -192,9 +192,12 @@ export class Player extends Sprite {
     inventory = [];
     inventorySize = 10;
     money = 0;
+    showInventory = false;
 
     constructor(game, name, info) {
         super(game, name, info);
+
+        this.inventoryBox = new InventoryBox(this.game, 0, 0, 700, 500, null);
     }
 
     drawRadius() {
@@ -208,7 +211,27 @@ export class Player extends Sprite {
     draw() {
         super.draw();
 
+        if (this.showInventory) {
+            if (!this.inventoryBox.context) {
+                this.inventoryBox.context = this.context;
+            }
+
+            let x = this.game.player.pos.x + 60;
+            let y = this.game.player.pos.y + this.game.canvas.height / 2 + 60;
+            this.inventoryBox.pos = {
+                x: this.game.player.pos.x + 60,
+                y: this.game.player.pos.y + this.game.canvas.height / 2 + 60
+            };
+
+            this.inventoryBox.draw();
+        }
+
         // this.drawRadius();
+    }
+
+    toggleInventory() {
+        this.movementLocked = !this.movementLocked;
+        this.showInventory = !this.showInventory;
     }
 
     isInRadius(other) {
@@ -414,7 +437,7 @@ export class NPC extends Sprite {
             this.game.player.inventory.length < this.game.player.inventorySize
         ) {
             let item = this.shopItems.find(i => i.id == dialoguePiece.itemId);
-            console.log(item, dialoguePiece.itemId)
+
             if (item) {
                 if (this.game.player.money >= item.price) {
                     this.game.player.inventory.push(item);
@@ -435,15 +458,11 @@ export class NPC extends Sprite {
 
     sell(dialoguePiece) {
         let item = this.game.player.inventory.find(i => i.id === dialoguePiece.itemId);
-        console.log(item)
+
         this.game.player.money += item.sellPrice;
         this.game.player.inventory.splice(this.game.player.inventory.indexOf(item), 1);
 
-
-        console.log(this.shopDialogue['sell'])
         this.dialogue[dialoguePiece.redirSuccess].textLines[0] = this.shopDialogue['sell'].replace('%item_name', item.name).replace('%item_cost', item.sellPrice);
-        console.log(this.shopDialogue['sell'])
-        // this.dialogue[dialoguePiece.redirSuccess].textLines[0] = this.shopDialogue['sell'];
         this.dialogueNum = dialoguePiece.redirSuccess;
     }
 
