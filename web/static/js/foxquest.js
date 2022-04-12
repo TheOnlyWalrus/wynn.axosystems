@@ -37,6 +37,7 @@ class GameArea {
 
     clear() {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.context.setTransform(1, 0, 0, 1, 0, 0);
     }
 
     update() {
@@ -45,6 +46,7 @@ class GameArea {
 
         let move = {x: 0, y: 0};
 
+        // probably handle these in each Area or make a call to the currentArea to handle
         if (this.heldKeys['w'] || this.heldKeys['ArrowUp']) {
             move.y -= 1;
         }
@@ -70,8 +72,8 @@ class GameArea {
             this.transitionArea('desert');
             delete this.pressedKeys['2'];
         }
-        if (this.pressedKeys['w'] || this.pressedKeys['ArrowUp']) {
-            this.pressedKeys['w'] ? delete this.pressedKeys['w'] : delete this.pressedKeys['ArrowUp'];
+        if (this.pressedKeys['w'] || (this.heldKeys['ArrowUp'] && this.currentArea.activeDialogues.length > 0)) {
+            this.pressedKeys['w'] ? delete this.pressedKeys['w'] : delete this.heldKeys['ArrowUp'];
 
             if (this.currentArea) {
                 if (this.currentArea.activeDialogues.length > 0) {
@@ -79,8 +81,8 @@ class GameArea {
                 }
             }
         }
-        if (this.pressedKeys['s'] || this.pressedKeys['ArrowDown']) {
-            this.pressedKeys['s'] ? delete this.pressedKeys['s'] : delete this.pressedKeys['ArrowDown'];
+        if (this.pressedKeys['s'] || (this.heldKeys['ArrowDown'] && this.currentArea.activeDialogues.length > 0)) {
+            this.pressedKeys['s'] ? delete this.pressedKeys['s'] : delete this.heldKeys['ArrowDown'];
 
             if (this.currentArea) {
                 if (this.currentArea.activeDialogues.length > 0) {
@@ -91,6 +93,26 @@ class GameArea {
 
         if (!this.player.denyInput) {
             this.player.move = move;
+        }
+
+
+        let camX = -this.player.pos.x + this.canvas.width / 2;
+        let camY = -this.player.pos.y + this.canvas.height / 2;
+
+        this.context.translate(camX, camY);
+
+        if (this.currentArea.activeDialogues.length > 0) {
+            let d = this.currentArea.activeDialogues[0];
+            this.currentArea.activeDialogues[0].pos = {
+                x: d.screenPos.x + this.player.pos.x - this.canvas.width / 2,
+                y: d.screenPos.y + this.player.pos.y - this.canvas.height / 2
+            }
+
+            if (this.pressedKeys['3']) {
+                console.log(`dX: ${d.screenPos.x}, dY: ${d.screenPos.y}, cX: ${camX}, cY: ${camY}, dH: ${d.height}, dW: ${d.width}`);
+
+                delete this.pressedKeys['3'];
+            }
         }
 
         if (this.currentArea) {

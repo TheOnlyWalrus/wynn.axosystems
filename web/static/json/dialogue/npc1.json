@@ -1,37 +1,52 @@
 {
   "0": {
     "textLines": [
-      "Hello from line 1!",
-      "Hello from line 2!"
+      "Line 1 not wrapped",
+      "Oh boy long example string to show off text wrapping red orange yellow green blue purple",
+      "Line 3 but its not wrapped either"
     ],
     "from": "self"
   },
   "1": {
-      "textLines": [
-          "froot",
-          {
-              "text": "apple",
-              "redir": 2
-          },
-          {
-              "text": "orang",
-              "redir": 3
-          }
-      ],
-      "from": "self"
+    "textLines": [
+        "froot",
+        {
+            "text": "apple",
+            "redir": 2
+        },
+        {
+            "text": "orang",
+            "redir": 3
+        },
+        {
+            "text": "strawb",
+            "redir": 4
+        }
+    ],
+    "from": "self"
   },
   "2": {
-      "textLines": ["apple!"],
-      "from": "player",
-      "redir": 4
+    "textLines": ["apple!"],
+    "from": "player",
+    "redir": 5
   },
   "3": {
-      "textLines": ["orang!"],
-      "from": "player",
-      "redir": 4
+    "textLines": ["orang!"],
+    "from": "player",
+    "redir": 5
   },
   "4": {
-      "textLines": ["lmao that sucks"],
-      "from": "self"
+    "textLines": ["strawb!"],
+    "from": "player",
+    "redir": 6
+  },
+  "5": {
+    "textLines": ["lmao that sucks"],
+    "from": "self",
+    "redir": -1
+  },
+  "6": {
+    "textLines": ["good choice"],
+    "from": "self"
   }
 }
