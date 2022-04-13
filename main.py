@@ -115,8 +115,6 @@ async def post_api_upload(request: Request):
 """
 
 
+@app.exception_handler(404)
 async def not_found(request: Request, exc: HTTPException):
     return templates.TemplateResponse('404.html', {'request': request})
-
-
-app.add_exception_handler(404, not_found)
