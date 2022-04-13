@@ -252,6 +252,9 @@ export class InventoryBox extends DisplayBox {
             this.context.fillText(statName + ': ' + statValue, this.pos.x - 25 + this.width / 7, this.pos.y - this.height * 1.45 + (i + 1) * 20);
         }
 
+        this.context.fillStyle = '#FFFAA0';
+        this.context.fillText('Money: ' + this.game.player.money, this.pos.x - 25 - this.width / 2, this.pos.y - this.height * 1.45 + 20 * 22);
+
         if (this.viewingInfo) {
             this.infoBox.pos = {
                 x: this.pos.x,
