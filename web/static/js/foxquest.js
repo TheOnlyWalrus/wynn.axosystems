@@ -96,8 +96,10 @@ class GameArea {
             this.transitionArea('combat');
             delete this.pressedKeys['3'];
         }
-        if (this.pressedKeys['w'] || (this.heldKeys['ArrowUp'] && this.currentArea.activeDialogues.length > 0)) {
+        if (this.pressedKeys['w'] || (this.heldKeys['ArrowUp'] && (this.currentArea.activeDialogues.length > 0 || this.player.showInventory))) {
             this.pressedKeys['w'] ? delete this.pressedKeys['w'] : delete this.heldKeys['ArrowUp'];
+
+            console.log();
 
             if (this.currentArea) {
                 if (this.currentArea.activeDialogues.length > 0) {
@@ -107,7 +109,7 @@ class GameArea {
                 }
             }
         }
-        if (this.pressedKeys['s'] || (this.heldKeys['ArrowDown'] && this.currentArea.activeDialogues.length > 0)) {
+        if (this.pressedKeys['s'] || (this.heldKeys['ArrowDown'] && (this.currentArea.activeDialogues.length > 0 || this.player.showInventory))) {
             this.pressedKeys['s'] ? delete this.pressedKeys['s'] : delete this.heldKeys['ArrowDown'];
 
             if (this.currentArea) {
