@@ -21,6 +21,12 @@ export class Sprite {
     };
     move = {x:0,y:0};
     area;
+    baseStats = {
+        attack: 0,
+        defense: 0,
+        speed: 0,
+        health: 0
+    }
 
     constructor(game, name, info) {
         this.game = game;
@@ -200,6 +206,7 @@ export class Player extends Sprite {
 
     constructor(game, name, info) {
         super(game, name, info);
+        this.baseStats.health = 100;
 
         this.inventoryBox = new InventoryBox(this.game, 0, 0, 700, 500, null);
     }
@@ -337,7 +344,7 @@ export class NPC extends Sprite {
 
     // todo: shopkeeper class
     shopItems = [
-        {name: 'Sword', price: 10, sellPrice: 5, description: 'A basic sword.', type: 'weapon', damage: 5, id: 0, equipped: false},
+        {name: 'Sword', price: 10, sellPrice: 5, description: 'A basic sword.', type: 'weapon', attack: 5, id: 0, equipped: false},
         {name: 'Shield', price: 10, sellPrice: 5, description: 'A basic shield.', type: 'shield', defense: 5, id: 1, equipped: false},
         {name: 'Health Potion', price: 5, sellPrice: 3, description: 'A basic health potion.', type: 'consumable', effect: 'health', effectAmount: 10, id: 2}
     ];

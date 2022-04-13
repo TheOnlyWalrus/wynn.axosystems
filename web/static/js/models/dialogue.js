@@ -231,6 +231,27 @@ export class InventoryBox extends DisplayBox {
             this.context.fillText(typeName + ': ' + name, this.pos.x - 25 - this.width / 2, this.pos.y - this.height * 1.45 + (i + 1) * 20);
         }
 
+        for (let i = 0; i < Object.keys(this.game.player.baseStats).length; i++) {
+            let statValue = Object.values(this.game.player.baseStats)[i];
+
+            let statName = Object.keys(this.game.player.baseStats)[i].toLowerCase();
+            statName = statName[0].toUpperCase() + statName.slice(1);
+
+            let equipped = Object.values(this.game.player.equipped);
+
+            for (let j = 0; j < equipped.length; j++) {
+                if (equipped[j] !== null) {
+                    if (equipped[j][statName.toLowerCase()]) {
+                        statValue += ' +' + equipped[j][statName.toLowerCase()];
+                    }
+                }
+            }
+
+            this.context.fillStyle = '#FFFFFF';
+            this.context.font = '20px courier new';
+            this.context.fillText(statName + ': ' + statValue, this.pos.x - 25 + this.width / 7, this.pos.y - this.height * 1.45 + (i + 1) * 20);
+        }
+
         if (this.viewingInfo) {
             this.infoBox.pos = {
                 x: this.pos.x,

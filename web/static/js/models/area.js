@@ -64,9 +64,9 @@ export class Grasslands extends Area {
         this.sprites[0] = this.game.player;
         this.sprites[0].dims = {w: 20, h: 20};
         this.sprites[0].pos = {x: 100, y: 100};
-        this.game.player.inventory.push({name: 'Sword', price: 10, sellPrice: 5, description: 'A basic sword.', type: 'weapon', damage: 5, id: 0, equipped: false});
-        this.game.player.inventory.push({name: 'Sword', price: 10, sellPrice: 5, description: 'A basic sword.', type: 'weapon', damage: 5, id: 0, equipped: false});
-        this.game.player.inventory.push({name: 'Sword', price: 10, sellPrice: 5, description: 'A basic sword.', type: 'weapon', damage: 5, id: 0, equipped: false});
+        this.game.player.inventory.push({name: 'Sword', price: 10, sellPrice: 5, description: 'A basic sword.', type: 'weapon', attack: 5, id: 0, equipped: false});
+        this.game.player.inventory.push({name: 'Sword', price: 10, sellPrice: 5, description: 'A basic sword.', type: 'weapon', attack: 5, id: 0, equipped: false});
+        this.game.player.inventory.push({name: 'Sword', price: 10, sellPrice: 5, description: 'A basic sword.', type: 'weapon', attack: 5, id: 0, equipped: false});
 
         this.sprites[1] = new NPC(this.game, 'npc1', {species: 'fox', affiliation: 'friendly'});
         this.sprites[1].dims = {w: 20, h: 20};
