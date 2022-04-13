@@ -226,6 +226,7 @@ export class InventoryBox extends DisplayBox {
 
             let typeName = this.types[i][0].toUpperCase() + this.types[i].slice(1);
 
+            this.context.fillStyle = '#FFFFFF';
             this.context.font = '20px courier new';
             this.context.fillText(typeName + ': ' + name, this.pos.x - 25 - this.width / 2, this.pos.y - this.height * 1.45 + (i + 1) * 20);
         }

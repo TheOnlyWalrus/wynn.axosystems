@@ -338,7 +338,7 @@ export class NPC extends Sprite {
     // todo: shopkeeper class
     shopItems = [
         {name: 'Sword', price: 10, sellPrice: 5, description: 'A basic sword.', type: 'weapon', damage: 5, id: 0, equipped: false},
-        {name: 'Shield', price: 10, sellPrice: 5, description: 'A basic shield.', type: 'armor', defense: 5, id: 1, equipped: false},
+        {name: 'Shield', price: 10, sellPrice: 5, description: 'A basic shield.', type: 'shield', defense: 5, id: 1, equipped: false},
         {name: 'Health Potion', price: 5, sellPrice: 3, description: 'A basic health potion.', type: 'consumable', effect: 'health', effectAmount: 10, id: 2}
     ];
 
@@ -483,7 +483,6 @@ export class NPC extends Sprite {
 
     sell(dialoguePiece) {
         let item = this.game.player.inventory.find(i => i.id == dialoguePiece.itemId && !i.equipped);
-        console.log(item)
 
         if (item && item.equipped !== true) {
             this.game.player.money += item.sellPrice;
