@@ -1,4 +1,4 @@
-import {NPC, Sprite} from "./sprite.js";
+import {NPC, Merchant} from "./sprite.js";
 import {DisplayBox} from "./dialogue.js";
 
 export class Area {
@@ -68,7 +68,14 @@ export class Grasslands extends Area {
         this.game.player.inventory.push({name: 'Sword', price: 10, sellPrice: 5, description: 'A basic sword.', type: 'weapon', attack: 5, id: 0, equipped: false});
         this.game.player.inventory.push({name: 'Sword', price: 10, sellPrice: 5, description: 'A basic sword.', type: 'weapon', attack: 5, id: 0, equipped: false});
 
-        this.sprites[1] = new NPC(this.game, 'npc1', {species: 'fox', affiliation: 'friendly'});
+        this.sprites[1] = new Merchant(this.game, 'merchant1', {
+            species: 'fox', affiliation: 'friendly',
+            shopItems: [
+                {name: 'Sword', price: 10, sellPrice: 5, description: 'A basic sword.', type: 'weapon', attack: 5, id: 0, equipped: false},
+                {name: 'Shield', price: 10, sellPrice: 5, description: 'A basic shield.', type: 'shield', defense: 5, id: 1, equipped: false},
+                {name: 'Health Potion', price: 5, sellPrice: 3, description: 'A potion made for healing.', type: 'potion', effectAmount: 5, id: 2, equipped: false},
+            ]
+        });
         this.sprites[1].dims = {w: 20, h: 20};
         this.sprites[1].pos = {x: 500, y: 350};
 
@@ -91,7 +98,14 @@ export class Desert extends Area {
         this.sprites[0].dims = {w: 20, h: 20};
         this.sprites[0].pos = {x: 100, y: 100};
 
-        this.sprites[1] = new NPC(this.game, 'npc1', {species: 'fox', affiliation: 'friendly'});
+        this.sprites[1] = new Merchant(this.game, 'merchant1', {
+            species: 'fox', affiliation: 'friendly',
+            shopItems: [
+                {name: 'Sword', price: 10, sellPrice: 5, description: 'A basic sword.', type: 'weapon', attack: 5, id: 0, equipped: false},
+                {name: 'Sword', price: 10, sellPrice: 5, description: 'A basic sword.', type: 'weapon', attack: 5, id: 0, equipped: false},
+                {name: 'Sword', price: 10, sellPrice: 5, description: 'A basic sword.', type: 'weapon', attack: 5, id: 0, equipped: false},
+            ]
+        });
         this.sprites[1].dims = {w: 20, h: 20};
         this.sprites[1].pos = {x: 500, y: 350};
 

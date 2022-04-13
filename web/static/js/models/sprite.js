@@ -336,18 +336,9 @@ export class Ray extends Sprite {
 
 export class NPC extends Sprite {
     dialogue = {};
-    shopDialogue = {'buy': 'You bought %item_name for %item_cost!',
-                    'sell': 'You sold %item_name for %item_cost!'};
     game;
     guiActive = false;
     redirAfterGUI = -2;
-
-    // todo: shopkeeper class
-    shopItems = [
-        {name: 'Sword', price: 10, sellPrice: 5, description: 'A basic sword.', type: 'weapon', attack: 5, id: 0, equipped: false},
-        {name: 'Shield', price: 10, sellPrice: 5, description: 'A basic shield.', type: 'shield', defense: 5, id: 1, equipped: false},
-        {name: 'Health Potion', price: 5, sellPrice: 3, description: 'A basic health potion.', type: 'consumable', effect: 'health', effectAmount: 10, id: 2}
-    ];
 
     constructor(game, name, info) {  // TODO: change canvas to game in every class
         super(game, name, info);
@@ -411,21 +402,6 @@ export class NPC extends Sprite {
                     ) {
                         // action field is not defined, but redir is and is a choice
                         let d = this.dialogue[this.dialogueNum].textLines[this.game.currentArea.activeDialogues[0].cursor];
-                        if (d.redir === 'shop_sell') {
-                            this.dialogue[d.redir].textLines = [];
-
-                            this.game.player.inventory.forEach(item => {
-                                this.dialogue[d.redir].textLines.push({
-                                    text: `${item.sellPrice} - ${item.name}`,
-                                    action: 'sell_item',
-                                    redirSuccess: 'sell_item_success',
-                                    redirFail: 'sell_item_fail',
-                                    itemId: item.id
-                                });
-                            });
-
-                            this.dialogue[d.redir].textLines.push({text: 'Exit', redir: 'shop_enter'})
-                        }
 
                         this.dialogueNum = d.redir;
                     } else if (this.dialogue[this.dialogueNum].redir !== undefined) {
@@ -454,15 +430,30 @@ export class NPC extends Sprite {
             this.guiActive = true;
         } else if (dialoguePiece.action === 'close_gui') {
             this.guiActive = false;
-        } else if (dialoguePiece.action === 'buy_item') {
-            this.buy(dialoguePiece);
-        } else if (dialoguePiece.action === 'sell_item') {
-            this.sell(dialoguePiece);
         }
     }
 
     // Todo: make shopkeeper class for these
     // Todo: maybe add another menu like "buy_screen" when selecting an item and display info about it
+
+    onCollision(other) {
+        super.onCollision(other);
+
+        if (other.name === 'ray') {
+            this.talk(other.info.from);
+        }
+    }
+}
+
+export class Merchant extends NPC {
+    shopDialogue = {'buy': 'You bought %item_name for %item_cost!',
+                    'sell': 'You sold %item_name for %item_cost!'};
+
+    constructor(game, name, info) {
+        super(game, name, info);
+
+        this.shopItems = info.shopItems;
+    }
 
     buy(dialoguePiece) {
         if (
@@ -502,11 +493,83 @@ export class NPC extends Sprite {
         }
     }
 
-    onCollision(other) {
-        super.onCollision(other);
+    act(dialoguePiece) {
+        super.act(dialoguePiece);
 
-        if (other.name === 'ray') {
-            this.talk(other.info.from);
+        if (dialoguePiece.action === 'buy_item') {
+            this.buy(dialoguePiece);
+        } else if (dialoguePiece.action === 'sell_item') {
+            this.sell(dialoguePiece);
+        }
+    }
+
+    talk(other) {
+        if (this.redirAfterGUI !== -2) {
+            this.dialogueNum = this.redirAfterGUI;
+            this.redirAfterGUI = -2;
+        } else {
+            if (this.game.currentArea.activeDialogues.length === 0) {
+                other.movementLocked = true;
+                let l = this.dialogue[this.dialogueNum];
+                let d = new DialogueBox(this.game, l.from, l.textLines);
+
+                this.game.pushDialogue(d);
+            } else {
+                if (this.dialogueNum >= this.dialogue.size || this.dialogue[this.dialogueNum] === undefined) {
+                    this.dialogueNum = 0;
+                    other.movementLocked = false;
+                    this.game.popDialogue();
+                } else {
+                    if (
+                        this.dialogue[this.dialogueNum].textLines[this.game.currentArea.activeDialogues[0].cursor] !== undefined &&
+                        this.dialogue[this.dialogueNum].textLines[this.game.currentArea.activeDialogues[0].cursor].action
+                    ) {
+                        // action field is defined
+                        let d = this.dialogue[this.dialogueNum].textLines[this.game.currentArea.activeDialogues[0].cursor];
+                        this.dialogueNum = d.redir;
+
+                        this.act(d)
+                    } else if (
+                        this.dialogue[this.dialogueNum].textLines[this.game.currentArea.activeDialogues[0].cursor] !== undefined &&
+                        this.dialogue[this.dialogueNum].textLines[this.game.currentArea.activeDialogues[0].cursor].redir
+                    ) {
+                        // action field is not defined, but redir is and is a choice
+                        let d = this.dialogue[this.dialogueNum].textLines[this.game.currentArea.activeDialogues[0].cursor];
+                        if (d.redir === 'shop_sell') {
+                            this.dialogue[d.redir].textLines = [];
+
+                            this.game.player.inventory.forEach(item => {
+                                this.dialogue[d.redir].textLines.push({
+                                    text: `${item.sellPrice} - ${item.name}`,
+                                    action: 'sell_item',
+                                    redirSuccess: 'sell_item_success',
+                                    redirFail: 'sell_item_fail',
+                                    itemId: item.id
+                                });
+                            });
+
+                            this.dialogue[d.redir].textLines.push({text: 'Exit', redir: 'shop_enter'});
+                        }
+
+                        this.dialogueNum = d.redir;
+                    } else if (this.dialogue[this.dialogueNum].redir !== undefined) {
+                        // normal dialogue, but redir is defined
+                        this.dialogueNum = this.dialogue[this.dialogueNum].redir;
+                    } else {
+                        // normal dialogue, no redir (go to next line)
+                        this.dialogueNum += 1;
+                    }
+
+                    if (this.dialogue[this.dialogueNum] !== undefined) {
+                        this.game.currentArea.activeDialogues[0].setText(this.dialogue[this.dialogueNum].textLines);
+                        this.game.currentArea.activeDialogues[0].author = this.dialogue[this.dialogueNum].from;
+                    } else {
+                        this.dialogueNum = 0;
+                        other.movementLocked = false;
+                        this.game.popDialogue();
+                    }
+                }
+            }
         }
     }
 }

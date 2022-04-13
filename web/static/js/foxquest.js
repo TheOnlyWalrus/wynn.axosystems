@@ -102,8 +102,6 @@ class GameArea {
         if (this.pressedKeys['w'] || (this.heldKeys['ArrowUp'] && (this.currentArea.activeDialogues.length > 0 || this.player.showInventory))) {
             this.pressedKeys['w'] ? delete this.pressedKeys['w'] : delete this.heldKeys['ArrowUp'];
 
-            console.log();
-
             if (this.currentArea) {
                 if (this.currentArea.activeDialogues.length > 0) {
                     this.currentArea.activeDialogues[0].moveCursor(-1);
@@ -119,7 +117,7 @@ class GameArea {
                 if (this.currentArea.activeDialogues.length > 0) {
                     this.currentArea.activeDialogues[0].moveCursor(1);
                 } else if (this.player.showInventory) {
-                    this.player.inventoryBox.moveCursor(1)
+                    this.player.inventoryBox.moveCursor(1);
                 }
             }
         }
