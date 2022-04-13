@@ -29,7 +29,6 @@ export class DisplayBox {
     }
 
     writeText(lineNo, text) {
-        this.context.fillStyle = '#FFFFFF';
         this.context.font = '20px courier new';
         this.context.fillText(text, this.pos.x - this.width / 1.7 + 10, this.pos.y - this.height * 1.5 + this.lineSpacing * lineNo);
     }
@@ -154,13 +153,30 @@ export class DialogueBox extends DisplayBox {
 
 export class InventoryBox extends DisplayBox {
     cursor = 0;
+    prevCursorPos = 0;
     viewingInfo = false;
     itemView = {};
+    infoChoices = [];
+    cursorMode = 'main';
+    types = [
+        'weapon',
+        'shield'
+    ];
 
     constructor(game, x, y, w, h) {
         super(game, x, y, w, h, null);
 
         this.infoBox = new DisplayBox(this.game, x, y, 500, 100, null);
+        this.infoChoices = [
+            {
+                text: 'Equip',
+                action: () => this.equip(),
+            },
+            {
+                text: 'Exit',
+                action: () => this.stopViewingInfo()
+            }
+        ];
     }
 
     draw() {
@@ -168,6 +184,11 @@ export class InventoryBox extends DisplayBox {
 
         if (this.items !== this.game.player.inventory) {
             this.items = this.game.player.inventory;
+        }
+
+        // set cursor to 0 if cursor is out of bounds (shouldn't happen because of setCursor)
+        if (this.cursor >= this.items.length) {
+            this.cursor = 0;
         }
 
         // show name at top of box
@@ -179,16 +200,35 @@ export class InventoryBox extends DisplayBox {
             let item = this.items[i];
             let itemName = item.name;
 
-            if (this.cursor === i) {
-                itemName = '> ' + itemName;
+            if (item.equipped) {
+                this.context.fillStyle = '#9e74e5';
+            } else {
+                this.context.fillStyle = '#FFFFFF';
+            }
+
+            if (!this.viewingInfo) {
+                if (this.cursor === i) {
+                    itemName = '> ' + itemName;
+                }
             }
 
             this.context.font = '20px courier new';
-            this.context.fillStyle = '#FFFFFF';
             this.context.fillText(itemName, this.pos.x - 120, this.pos.y - this.height * 1.45 + (i + 1) * 20);
         }
 
-        // figure out how to select items
+        for (let i = 0; i < Object.keys(this.game.player.equipped).length; i++) {
+            let item = Object.values(this.game.player.equipped)[i];
+            let name = 'None';
+
+            if (item !== null) {
+                name = item.name;
+            }
+
+            let typeName = this.types[i][0].toUpperCase() + this.types[i].slice(1);
+
+            this.context.font = '20px courier new';
+            this.context.fillText(typeName + ': ' + name, this.pos.x - 25 - this.width / 2, this.pos.y - this.height * 1.45 + (i + 1) * 20);
+        }
 
         if (this.viewingInfo) {
             this.infoBox.pos = {
@@ -196,9 +236,30 @@ export class InventoryBox extends DisplayBox {
                 y: this.pos.y - 250
             };
             this.infoBox.draw();
+            this.context.fillStyle = '#FFFFFF';
             this.infoBox.writeText(1, this.itemView.name);
             this.infoBox.writeText(2, this.itemView.description);
-            // draw item info
+
+            for (let i = 0; i < this.infoChoices.length; i++) {
+                if (!this.items[this.prevCursorPos].equipped && this.infoChoices[0].text !== 'Equip') {
+                    this.infoChoices[0] = {
+                        'text': 'Equip',
+                        'action': () => this.equip()
+                    }
+                } else if (this.items[this.prevCursorPos].equipped && this.infoChoices[0].text !== 'Unequip') {
+                    this.infoChoices[0] = {
+                        'text': 'Unequip',
+                        'action': () => this.unequip()
+                    }
+                }
+
+                let text = this.infoChoices[i].text;
+                if (this.cursor === i) {
+                    text = '> ' + text;
+                }
+
+                this.infoBox.writeText(i + 3, text);
+            }
         }
     }
 
@@ -211,6 +272,14 @@ export class InventoryBox extends DisplayBox {
             } else {  // normal cursor movement
                 this.cursor += dir;
             }
+        } else {
+            if (this.cursor + dir >= this.infoChoices.length) {  // cursor at very bottom and trying to move down, set to first
+                this.cursor = 0;
+            } else if (this.cursor + dir < 0) {  // cursor at very top and trying to move up, set to last
+                this.cursor = this.infoChoices.length - 1;
+            } else {  // normal cursor movement
+                this.cursor += dir;
+            }
         }
     }
 
@@ -218,8 +287,29 @@ export class InventoryBox extends DisplayBox {
         if (!this.viewingInfo && this.items[this.cursor]) {
             this.viewingInfo = true;
             this.itemView = this.items[this.cursor];
-        } else if (this.viewingInfo) {
-            this.viewingInfo = false;
+            this.prevCursorPos = this.cursor;
+            this.cursor = 0;
+        } else if (this.viewingInfo && this.infoChoices[this.cursor]) {
+            this.infoChoices[this.cursor].action();
         }
+    }
+
+    equip() {
+        let item = this.items[this.prevCursorPos];
+
+        this.game.player.equip(item);
+
+        this.stopViewingInfo();
+    }
+
+    unequip() {
+        this.game.player.unequip(this.items[this.prevCursorPos].type);
+
+        this.stopViewingInfo();
+    }
+
+    stopViewingInfo() {
+        this.viewingInfo = false;
+        this.cursor = this.prevCursorPos;
     }
 }

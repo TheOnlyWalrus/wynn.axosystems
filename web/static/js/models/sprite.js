@@ -193,11 +193,36 @@ export class Player extends Sprite {
     inventorySize = 10;
     money = 0;
     showInventory = false;
+    equipped = {
+        weapon: null,
+        shield: null
+    };
 
     constructor(game, name, info) {
         super(game, name, info);
 
         this.inventoryBox = new InventoryBox(this.game, 0, 0, 700, 500, null);
+    }
+
+    equip(item) {
+        item.equipped = true;
+
+        if (item.type === 'weapon') {
+            if (this.equipped.weapon !== null) {
+                this.equipped.weapon.equipped = false;
+            }
+            this.equipped.weapon = item;
+        } else if (item.type === 'shield') {
+            if (this.equipped.shield !== null) {
+                this.equipped.shield.equipped = false;
+            }
+            this.equipped.shield = item;
+        }
+    }
+
+    unequip(itemType) {
+        this.equipped[itemType].equipped = false;
+        this.equipped[itemType] = null;
     }
 
     drawRadius() {
@@ -312,8 +337,8 @@ export class NPC extends Sprite {
 
     // todo: shopkeeper class
     shopItems = [
-        {name: 'Sword', price: 10, sellPrice: 5, description: 'A basic sword.', type: 'weapon', damage: 5, id: 0},
-        {name: 'Shield', price: 10, sellPrice: 5, description: 'A basic shield.', type: 'armor', defense: 5, id: 1},
+        {name: 'Sword', price: 10, sellPrice: 5, description: 'A basic sword.', type: 'weapon', damage: 5, id: 0, equipped: false},
+        {name: 'Shield', price: 10, sellPrice: 5, description: 'A basic shield.', type: 'armor', defense: 5, id: 1, equipped: false},
         {name: 'Health Potion', price: 5, sellPrice: 3, description: 'A basic health potion.', type: 'consumable', effect: 'health', effectAmount: 10, id: 2}
     ];
 
@@ -457,13 +482,18 @@ export class NPC extends Sprite {
     }
 
     sell(dialoguePiece) {
-        let item = this.game.player.inventory.find(i => i.id === dialoguePiece.itemId);
+        let item = this.game.player.inventory.find(i => i.id == dialoguePiece.itemId && !i.equipped);
+        console.log(item)
 
-        this.game.player.money += item.sellPrice;
-        this.game.player.inventory.splice(this.game.player.inventory.indexOf(item), 1);
+        if (item && item.equipped !== true) {
+            this.game.player.money += item.sellPrice;
+            this.game.player.inventory.splice(this.game.player.inventory.indexOf(item), 1);
 
-        this.dialogue[dialoguePiece.redirSuccess].textLines[0] = this.shopDialogue['sell'].replace('%item_name', item.name).replace('%item_cost', item.sellPrice);
-        this.dialogueNum = dialoguePiece.redirSuccess;
+            this.dialogue[dialoguePiece.redirSuccess].textLines[0] = this.shopDialogue['sell'].replace('%item_name', item.name).replace('%item_cost', item.sellPrice);
+            this.dialogueNum = dialoguePiece.redirSuccess;
+        } else {
+            this.dialogueNum = dialoguePiece.redirFail;
+        }
     }
 
     onCollision(other) {
