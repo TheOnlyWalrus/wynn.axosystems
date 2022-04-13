@@ -29,7 +29,7 @@ class GameArea {
         this.areas['desert'] = new Desert(this);
         this.areas['combat'] = new CombatArea(this);
         this.currentArea = this.areas['grasslands'];
-        this.player.setupParty();
+        this.player.setupParty();  // player needs to be created before areas, but the party needs to be created after the areas
     }
 
     prepareTextures() {  // could probably just load a texture upon loading an area by name
