@@ -11,12 +11,7 @@ class GameArea {
     cameraY = 0;
 
     start() {
-        this.player = new Player(this, 'player', {species: 'fox', affiliation: 'player'});
         this.prepareTextures();
-
-        this.areas['grasslands'] = new Grasslands(this);
-        this.areas['desert'] = new Desert(this);
-        this.areas['combat'] = new CombatArea(this);
 
         window.addEventListener('keydown', (e) => this.keyDown(e));
         window.addEventListener('keyup', (e) => this.keyUp(e));
@@ -29,7 +24,14 @@ class GameArea {
         this.heldKeys = {};
         this.pressedKeys = {};
 
+        this.player = new Player(this, 'player', {species: 'fox', affiliation: 'player'});
+        this.areas['grasslands'] = new Grasslands(this);
+        this.areas['desert'] = new Desert(this);
+        this.areas['combat'] = new CombatArea(this);
         this.currentArea = this.areas['grasslands'];
+        this.player.setupParty();
+        console.log(this.currentArea)
+
     }
 
     prepareTextures() {  // could probably just load a texture upon loading an area by name

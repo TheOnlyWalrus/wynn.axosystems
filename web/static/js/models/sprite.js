@@ -35,6 +35,7 @@ export class Sprite {
         this.name = name;
         this.info = info;
         this.move = {x:0,y:0};
+        this.area = this.game.currentArea;
     }
 
     draw() {
@@ -196,6 +197,9 @@ export class Enemy extends Sprite {
 export class Player extends Sprite {
     detectRadius = 80;
     inventory = [];
+    party = {
+
+    };
     inventorySize = 10;
     money = 0;
     showInventory = false;
@@ -214,17 +218,12 @@ export class Player extends Sprite {
     equip(item) {
         item.equipped = true;
 
-        if (item.type === 'weapon') {
-            if (this.equipped.weapon !== null) {
-                this.equipped.weapon.equipped = false;
-            }
-            this.equipped.weapon = item;
-        } else if (item.type === 'shield') {
-            if (this.equipped.shield !== null) {
-                this.equipped.shield.equipped = false;
-            }
-            this.equipped.shield = item;
+        if (this.equipped[item.type] !== null) {
+            this.equipped.weapon.equipped = false;
+            this.equipped.weapon.holder = null;
         }
+        this.equipped[item.type] = item;
+        this.equipped[item.type].holder = this;
     }
 
     unequip(itemType) {
@@ -248,17 +247,15 @@ export class Player extends Sprite {
                 this.inventoryBox.context = this.context;
             }
 
-            let x = this.game.player.pos.x + 60;
-            let y = this.game.player.pos.y + this.game.canvas.height / 2 + 60;
+            let x = this.pos.x + 60;
+            let y = this.pos.y + this.game.canvas.height / 2 + 60;
             this.inventoryBox.pos = {
-                x: this.game.player.pos.x + 60,
-                y: this.game.player.pos.y + this.game.canvas.height / 2 + 60
+                x: this.pos.x + 60,
+                y: this.pos.y + this.game.canvas.height / 2 + 60
             };
 
             this.inventoryBox.draw();
         }
-
-        // this.drawRadius();
     }
 
     toggleInventory() {
@@ -287,6 +284,39 @@ export class Player extends Sprite {
                 other.drawName();
             }
         }
+    }
+
+    setupParty() {
+        this.party['1'] = new PartyMember(this.game, '1', this, {species: 'fox', affiliation: 'party', 'pos': 1});
+    }
+}
+
+export class PartyMember extends Sprite {
+    equipped = {
+        weapon: null,
+        shield: null
+    };
+
+    constructor(game, name, player, info) {
+        super(game, name, info)
+        this.player = player;
+    }
+
+    equip(item) {
+        item.equipped = true;
+
+        if (this.equipped[item.type] !== null) {
+            this.equipped.weapon.equipped = false;
+            this.equipped.weapon.holder = null;
+        }
+        this.equipped[item.type] = item;
+        this.equipped[item.type].holder = this;
+    }
+
+    unequip(itemType) {
+        this.equipped[itemType].equipped = false;
+        this.equipped[itemType].holder = null;
+        this.equipped[itemType] = null;
     }
 }
 

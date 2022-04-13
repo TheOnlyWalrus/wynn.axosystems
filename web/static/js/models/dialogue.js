@@ -30,6 +30,7 @@ export class DisplayBox {
 
     writeText(lineNo, text) {
         this.context.font = '20px courier new';
+        this.context.fillStyle = '#FFFFFF';
         this.context.fillText(text, this.pos.x - this.width / 1.7 + 10, this.pos.y - this.height * 1.5 + this.lineSpacing * lineNo);
     }
 
@@ -155,6 +156,7 @@ export class InventoryBox extends DisplayBox {
     cursor = 0;
     prevCursorPos = 0;
     viewingInfo = false;
+    viewingEquipping = false;
     itemView = {};
     infoChoices = [];
     cursorMode = 'main';
@@ -162,32 +164,63 @@ export class InventoryBox extends DisplayBox {
         'weapon',
         'shield'
     ];
+    equipChoices = [];
 
     constructor(game, x, y, w, h) {
         super(game, x, y, w, h, null);
 
         this.infoBox = new DisplayBox(this.game, x, y, 500, 100, null);
+        this.equipBox = new DisplayBox(this.game, x, y, 500, 100, null);
         this.infoChoices = [
             {
                 text: 'Equip',
-                action: () => this.equip(),
+                action: () => this.viewingEquipping = true
             },
             {
                 text: 'Exit',
                 action: () => this.stopViewingInfo()
             }
         ];
+        this.equipChoices = [
+            {
+                text: 'Exit',
+                action: () => this.stopViewingEquipping()
+            }
+        ]
     }
 
     draw() {
         super.draw();
+
+        if (this.equipChoices.length < Object.values(this.game.player.party).length + 1) {
+            this.equipChoices = [
+                {
+                    text: 'Exit',
+                    action: () => this.stopViewingEquipping()
+                }
+            ];
+            for (let p of Object.values(this.game.player.party)) {
+                this.equipChoices.unshift({
+                    text: p.name,
+                    action: () => this.equip(p)
+                });
+            }
+            this.equipChoices.unshift({
+                text: 'Player',
+                action: () => this.equip(this.game.player)
+            });
+        }
 
         if (this.items !== this.game.player.inventory) {
             this.items = this.game.player.inventory;
         }
 
         // set cursor to 0 if cursor is out of bounds (shouldn't happen because of setCursor)
-        if (this.cursor >= this.items.length) {
+        if (this.cursor >= this.items.length && !this.viewingEquipping && !this.viewingInfo) {
+            this.cursor = 0;
+        } else if ((this.cursor >= this.equipChoices.length && this.viewingEquipping) || (this.cursor < 0 && this.viewingEquipping)) {
+            this.cursor = 1;
+        } else if (this.cursor >= this.infoChoices.length && this.viewingInfo && !this.viewingEquipping) {
             this.cursor = 0;
         }
 
@@ -216,15 +249,20 @@ export class InventoryBox extends DisplayBox {
             this.context.fillText(itemName, this.pos.x - 120, this.pos.y - this.height * 1.45 + (i + 1) * 20);
         }
 
-        for (let i = 0; i < Object.keys(this.game.player.equipped).length; i++) {
-            let item = Object.values(this.game.player.equipped)[i];
+        let all = Object.values(this.game.player.equipped);
+        for (let p of Object.values(this.game.player.party)) {
+            all = [...all, ...Object.values(p.equipped)];
+        }
+        for (let i = 0; i < all.length; i++) {
+            let item = all[i];
             let name = 'None';
 
             if (item !== null) {
                 name = item.name;
             }
 
-            let typeName = this.types[i][0].toUpperCase() + this.types[i].slice(1);
+            let idx = i % Object.keys(this.game.player.equipped).length;
+            let typeName = this.types[idx][0].toUpperCase() + this.types[idx].slice(1);
 
             this.context.fillStyle = '#FFFFFF';
             this.context.font = '20px courier new';
@@ -255,7 +293,7 @@ export class InventoryBox extends DisplayBox {
         this.context.fillStyle = '#FFFAA0';
         this.context.fillText('Money: ' + this.game.player.money, this.pos.x - 25 - this.width / 2, this.pos.y - this.height * 1.45 + 20 * 22);
 
-        if (this.viewingInfo) {
+        if (this.viewingInfo && !this.viewingEquipping) {
             this.infoBox.pos = {
                 x: this.pos.x,
                 y: this.pos.y - 250
@@ -269,12 +307,12 @@ export class InventoryBox extends DisplayBox {
                 if (!this.items[this.prevCursorPos].equipped && this.infoChoices[0].text !== 'Equip') {
                     this.infoChoices[0] = {
                         'text': 'Equip',
-                        'action': () => this.equip()
+                        'action': () => this.viewingEquipping = true
                     }
                 } else if (this.items[this.prevCursorPos].equipped && this.infoChoices[0].text !== 'Unequip') {
                     this.infoChoices[0] = {
                         'text': 'Unequip',
-                        'action': () => this.unequip()
+                        'action': () => this.unequip(this.items[this.prevCursorPos].holder)
                     }
                 }
 
@@ -284,6 +322,21 @@ export class InventoryBox extends DisplayBox {
                 }
 
                 this.infoBox.writeText(i + 3, text);
+            }
+        } else if (this.viewingEquipping) {
+            this.equipBox.pos = {
+                x: this.pos.x,
+                y: this.pos.y - 250
+            };
+            this.equipBox.draw()
+            this.equipBox.writeText(1, 'Equip to: ');
+            for (let i = 0; i < this.equipChoices.length; i++) {
+                name = this.equipChoices[i].text;
+                if (this.cursor === i) {
+                    name = '> ' + name;
+                }
+
+                this.equipBox.writeText(i + 2, name);
             }
         }
     }
@@ -297,11 +350,19 @@ export class InventoryBox extends DisplayBox {
             } else {  // normal cursor movement
                 this.cursor += dir;
             }
-        } else {
+        } else if (!this.viewingEquipping) {
             if (this.cursor + dir >= this.infoChoices.length) {  // cursor at very bottom and trying to move down, set to first
                 this.cursor = 0;
             } else if (this.cursor + dir < 0) {  // cursor at very top and trying to move up, set to last
                 this.cursor = this.infoChoices.length - 1;
+            } else {  // normal cursor movement
+                this.cursor += dir;
+            }
+        } else if (this.viewingEquipping) {
+            if (this.cursor + dir >= this.equipChoices.length) {  // cursor at very bottom and trying to move down, set to first
+                this.cursor = 0;
+            } else if (this.cursor + dir < 0) {  // cursor at very top and trying to move up, set to last
+                this.cursor = this.equipChoices.length - 1;
             } else {  // normal cursor movement
                 this.cursor += dir;
             }
@@ -314,21 +375,23 @@ export class InventoryBox extends DisplayBox {
             this.itemView = this.items[this.cursor];
             this.prevCursorPos = this.cursor;
             this.cursor = 0;
-        } else if (this.viewingInfo && this.infoChoices[this.cursor]) {
+        } else if (this.viewingInfo && this.infoChoices[this.cursor] && !this.viewingEquipping) {
             this.infoChoices[this.cursor].action();
+        } else if (this.viewingEquipping) {
+            this.equipChoices[this.cursor].action();
         }
     }
 
-    equip() {
+    equip(who) {
         let item = this.items[this.prevCursorPos];
 
-        this.game.player.equip(item);
+        who.equip(item);
 
-        this.stopViewingInfo();
+        this.stopViewingEquipping();
     }
 
-    unequip() {
-        this.game.player.unequip(this.items[this.prevCursorPos].type);
+    unequip(who) {
+        who.unequip(this.items[this.prevCursorPos].type);
 
         this.stopViewingInfo();
     }
@@ -336,5 +399,10 @@ export class InventoryBox extends DisplayBox {
     stopViewingInfo() {
         this.viewingInfo = false;
         this.cursor = this.prevCursorPos;
+    }
+
+    stopViewingEquipping() {
+        this.viewingEquipping = false;
+        this.cursor = 0;
     }
 }
