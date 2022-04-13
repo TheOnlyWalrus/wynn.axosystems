@@ -30,8 +30,6 @@ class GameArea {
         this.areas['combat'] = new CombatArea(this);
         this.currentArea = this.areas['grasslands'];
         this.player.setupParty();
-        console.log(this.currentArea)
-
     }
 
     prepareTextures() {  // could probably just load a texture upon loading an area by name
