@@ -1,4 +1,4 @@
-import { DialogueBox } from './dialogue.js'
+import {DialogueBox, DisplayBox, InventoryBox} from './dialogue.js'
 
 export class Sprite {
     image = null;
@@ -19,20 +19,23 @@ export class Sprite {
         up: 1,
         right: 0
     };
-    move = {x:0,y:0}
+    move = {x:0,y:0};
     area;
+    baseStats = {
+        attack: 0,
+        defense: 0,
+        speed: 0,
+        health: 0
+    }
 
-    constructor(canvas, name, info) {
-        this.canvas = canvas;
+    constructor(game, name, info) {
+        this.game = game;
+        this.canvas = this.game.canvas;
         this.context = this.canvas.getContext('2d');
         this.name = name;
         this.info = info;
         this.move = {x:0,y:0};
-        this._vel = {x:0,y:0};
-    }
-
-    setArea(area) {
-        this.area = area;
+        this.area = this.game.currentArea;
     }
 
     draw() {
@@ -183,12 +186,49 @@ export class Sprite {
     }
 }
 
+export class Enemy extends Sprite {
+    constructor(game, name, info) {
+        super(game, name, info);
+        this.startHealth = info.startHealth;
+        this.maxHealth = info.maxHealth;
+    }
+}
+
 export class Player extends Sprite {
     detectRadius = 80;
-    game;
+    inventory = [];
+    party = {
 
-    setup(game) {
-        this.game = game;
+    };
+    inventorySize = 10;
+    money = 0;
+    showInventory = false;
+    equipped = {
+        weapon: null,
+        shield: null
+    };
+
+    constructor(game, name, info) {
+        super(game, name, info);
+        this.baseStats.health = 100;
+
+        this.inventoryBox = new InventoryBox(this.game, 0, 0, 700, 500, null);
+    }
+
+    equip(item) {
+        item.equipped = true;
+
+        if (this.equipped[item.type] !== null) {
+            this.equipped.weapon.equipped = false;
+            this.equipped.weapon.holder = null;
+        }
+        this.equipped[item.type] = item;
+        this.equipped[item.type].holder = this;
+    }
+
+    unequip(itemType) {
+        this.equipped[itemType].equipped = false;
+        this.equipped[itemType] = null;
     }
 
     drawRadius() {
@@ -202,7 +242,25 @@ export class Player extends Sprite {
     draw() {
         super.draw();
 
-        // this.drawRadius();
+        if (this.showInventory) {
+            if (!this.inventoryBox.context) {
+                this.inventoryBox.context = this.context;
+            }
+
+            let x = this.pos.x + 60;
+            let y = this.pos.y + this.game.canvas.height / 2 + 60;
+            this.inventoryBox.pos = {
+                x: this.pos.x + 60,
+                y: this.pos.y + this.game.canvas.height / 2 + 60
+            };
+
+            this.inventoryBox.draw();
+        }
+    }
+
+    toggleInventory() {
+        this.movementLocked = !this.movementLocked;
+        this.showInventory = !this.showInventory;
     }
 
     isInRadius(other) {
@@ -227,13 +285,47 @@ export class Player extends Sprite {
             }
         }
     }
+
+    setupParty() {
+        this.party['1'] = new PartyMember(this.game, '1', this, {species: 'fox', affiliation: 'party', 'pos': 1});
+    }
+}
+
+export class PartyMember extends Sprite {
+    equipped = {
+        weapon: null,
+        shield: null
+    };
+
+    constructor(game, name, player, info) {
+        super(game, name, info)
+        this.player = player;
+    }
+
+    equip(item) {
+        item.equipped = true;
+
+        if (this.equipped[item.type] !== null) {
+            this.equipped.weapon.equipped = false;
+            this.equipped.weapon.holder = null;
+        }
+        this.equipped[item.type] = item;
+        this.equipped[item.type].holder = this;
+    }
+
+    unequip(itemType) {
+        this.equipped[itemType].equipped = false;
+        this.equipped[itemType].holder = null;
+        this.equipped[itemType] = null;
+    }
 }
 
 export class Ray extends Sprite {
     rayWidth = 10
 
-    constructor(canvas, range) {
-        super(canvas, 'ray', {});
+    constructor(game, range) {
+        super(game, 'ray', {});
+        this.canvas = this.game.canvas;
         this.range = range;
     }
 
@@ -275,18 +367,18 @@ export class Ray extends Sprite {
 export class NPC extends Sprite {
     dialogue = {};
     game;
+    guiActive = false;
+    redirAfterGUI = -2;
 
-    constructor(canvas, name, info) {
-        super(canvas, name, info);
-        this.dialogueNum = 0;
-    }
-
-    setup(game) {
+    constructor(game, name, info) {  // TODO: change canvas to game in every class
+        super(game, name, info);
         this.game = game;
+        this.dialogueNum = 0;
         this.loadDialogue();
     }
 
     loadDialogue() {
+        // replace player string value with game.player
         fetch(`../../json/dialogue/${this.name}.json`)
             .then(res => res.json())
             .then(r => {
@@ -309,46 +401,205 @@ export class NPC extends Sprite {
     }
 
     talk(other) {
-        if (this.game.currentArea.activeDialogues.length === 0) {
-            other.movementLocked = true;
-            let l = this.dialogue[this.dialogueNum];
-            let d = new DialogueBox(this.canvas, l.from, l.textLines);
-
-            this.game.pushDialogue(d);
+        if (this.redirAfterGUI !== -2) {
+            this.dialogueNum = this.redirAfterGUI;
+            this.redirAfterGUI = -2;
         } else {
-            if (this.dialogueNum >= this.dialogue.size || this.dialogue[this.dialogueNum] === undefined) {
-                this.dialogueNum = 0;
-                other.movementLocked = false;
-                this.game.popDialogue();
-            } else {
-                if (
-                    this.dialogue[this.dialogueNum].textLines[this.game.currentArea.activeDialogues[0].cursor] !== undefined &&
-                    this.dialogue[this.dialogueNum].textLines[this.game.currentArea.activeDialogues[0].cursor].redir
-                ) {
-                    this.dialogueNum = this.dialogue[this.dialogueNum].textLines[this.game.currentArea.activeDialogues[0].cursor].redir;
-                } else if (this.dialogue[this.dialogueNum].redir !== undefined) {
-                    this.dialogueNum = this.dialogue[this.dialogueNum].redir;
-                } else {
-                    this.dialogueNum += 1;
-                }
+            if (this.game.currentArea.activeDialogues.length === 0) {
+                other.movementLocked = true;
+                let l = this.dialogue[this.dialogueNum];
+                let d = new DialogueBox(this.game, l.from, l.textLines);
 
-                if (this.dialogue[this.dialogueNum] !== undefined) {
-                    this.game.currentArea.activeDialogues[0].setText(this.dialogue[this.dialogueNum].textLines);
-                    this.game.currentArea.activeDialogues[0].author = this.dialogue[this.dialogueNum].from;
-                } else {
+                this.game.pushDialogue(d);
+            } else {
+                if (this.dialogueNum >= this.dialogue.size || this.dialogue[this.dialogueNum] === undefined) {
                     this.dialogueNum = 0;
                     other.movementLocked = false;
                     this.game.popDialogue();
+                } else {
+                    if (
+                        this.dialogue[this.dialogueNum].textLines[this.game.currentArea.activeDialogues[0].cursor] !== undefined &&
+                        this.dialogue[this.dialogueNum].textLines[this.game.currentArea.activeDialogues[0].cursor].action
+                    ) {
+                        // action field is defined
+                        let d = this.dialogue[this.dialogueNum].textLines[this.game.currentArea.activeDialogues[0].cursor];
+                        this.dialogueNum = d.redir;
+
+                        this.act(d)
+                    } else if (
+                        this.dialogue[this.dialogueNum].textLines[this.game.currentArea.activeDialogues[0].cursor] !== undefined &&
+                        this.dialogue[this.dialogueNum].textLines[this.game.currentArea.activeDialogues[0].cursor].redir
+                    ) {
+                        // action field is not defined, but redir is and is a choice
+                        let d = this.dialogue[this.dialogueNum].textLines[this.game.currentArea.activeDialogues[0].cursor];
+
+                        this.dialogueNum = d.redir;
+                    } else if (this.dialogue[this.dialogueNum].redir !== undefined) {
+                        // normal dialogue, but redir is defined
+                        this.dialogueNum = this.dialogue[this.dialogueNum].redir;
+                    } else {
+                        // normal dialogue, no redir (go to next line)
+                        this.dialogueNum += 1;
+                    }
+
+                    if (this.dialogue[this.dialogueNum] !== undefined) {
+                        this.game.currentArea.activeDialogues[0].setText(this.dialogue[this.dialogueNum].textLines);
+                        this.game.currentArea.activeDialogues[0].author = this.dialogue[this.dialogueNum].from;
+                    } else {
+                        this.dialogueNum = 0;
+                        other.movementLocked = false;
+                        this.game.popDialogue();
+                    }
                 }
             }
         }
     }
+
+    act(dialoguePiece) {
+        if (dialoguePiece.action === 'open_gui') {
+            this.guiActive = true;
+        } else if (dialoguePiece.action === 'close_gui') {
+            this.guiActive = false;
+        }
+    }
+
+    // Todo: make shopkeeper class for these
+    // Todo: maybe add another menu like "buy_screen" when selecting an item and display info about it
 
     onCollision(other) {
         super.onCollision(other);
 
         if (other.name === 'ray') {
             this.talk(other.info.from);
+        }
+    }
+}
+
+export class Merchant extends NPC {
+    shopDialogue = {'buy': 'You bought %item_name for %item_cost!',
+                    'sell': 'You sold %item_name for %item_cost!'};
+
+    constructor(game, name, info) {
+        super(game, name, info);
+
+        this.shopItems = info.shopItems;
+    }
+
+    buy(dialoguePiece) {
+        if (
+            this.game.player.inventory.length < this.game.player.inventorySize
+        ) {
+            let item = this.shopItems.find(i => i.id == dialoguePiece.itemId);
+
+            if (item) {
+                if (this.game.player.money >= item.price) {
+                    this.game.player.inventory.push(item);
+                    this.game.player.money -= item.price;
+
+                    this.dialogue[dialoguePiece.redirSuccess].textLines[0] = this.shopDialogue['buy'].replace('%item_name', item.name).replace('%item_cost', item.price);
+                    this.dialogueNum = dialoguePiece.redirSuccess;
+                } else {
+                    this.dialogueNum = dialoguePiece.redirFailMoney;
+                }
+            } else {
+                this.dialogueNum = dialoguePiece.redirFail;
+            }
+        } else {
+            this.dialogueNum = dialoguePiece.redirFailSpace;
+        }
+    }
+
+    sell(dialoguePiece) {
+        let item = this.game.player.inventory.find(i => i.id == dialoguePiece.itemId && !i.equipped);
+
+        if (item && item.equipped !== true) {
+            this.game.player.money += item.sellPrice;
+            this.game.player.inventory.splice(this.game.player.inventory.indexOf(item), 1);
+
+            this.dialogue[dialoguePiece.redirSuccess].textLines[0] = this.shopDialogue['sell'].replace('%item_name', item.name).replace('%item_cost', item.sellPrice);
+            this.dialogueNum = dialoguePiece.redirSuccess;
+        } else {
+            this.dialogueNum = dialoguePiece.redirFail;
+        }
+    }
+
+    act(dialoguePiece) {
+        super.act(dialoguePiece);
+
+        if (dialoguePiece.action === 'buy_item') {
+            this.buy(dialoguePiece);
+        } else if (dialoguePiece.action === 'sell_item') {
+            this.sell(dialoguePiece);
+        }
+    }
+
+    talk(other) {
+        if (this.redirAfterGUI !== -2) {
+            this.dialogueNum = this.redirAfterGUI;
+            this.redirAfterGUI = -2;
+        } else {
+            if (this.game.currentArea.activeDialogues.length === 0) {
+                other.movementLocked = true;
+                let l = this.dialogue[this.dialogueNum];
+                let d = new DialogueBox(this.game, l.from, l.textLines);
+
+                this.game.pushDialogue(d);
+            } else {
+                if (this.dialogueNum >= this.dialogue.size || this.dialogue[this.dialogueNum] === undefined) {
+                    this.dialogueNum = 0;
+                    other.movementLocked = false;
+                    this.game.popDialogue();
+                } else {
+                    if (
+                        this.dialogue[this.dialogueNum].textLines[this.game.currentArea.activeDialogues[0].cursor] !== undefined &&
+                        this.dialogue[this.dialogueNum].textLines[this.game.currentArea.activeDialogues[0].cursor].action
+                    ) {
+                        // action field is defined
+                        let d = this.dialogue[this.dialogueNum].textLines[this.game.currentArea.activeDialogues[0].cursor];
+                        this.dialogueNum = d.redir;
+
+                        this.act(d)
+                    } else if (
+                        this.dialogue[this.dialogueNum].textLines[this.game.currentArea.activeDialogues[0].cursor] !== undefined &&
+                        this.dialogue[this.dialogueNum].textLines[this.game.currentArea.activeDialogues[0].cursor].redir
+                    ) {
+                        // action field is not defined, but redir is and is a choice
+                        let d = this.dialogue[this.dialogueNum].textLines[this.game.currentArea.activeDialogues[0].cursor];
+                        if (d.redir === 'shop_sell') {
+                            this.dialogue[d.redir].textLines = [];
+
+                            this.game.player.inventory.forEach(item => {
+                                this.dialogue[d.redir].textLines.push({
+                                    text: `${item.sellPrice} - ${item.name}`,
+                                    action: 'sell_item',
+                                    redirSuccess: 'sell_item_success',
+                                    redirFail: 'sell_item_fail',
+                                    itemId: item.id
+                                });
+                            });
+
+                            this.dialogue[d.redir].textLines.push({text: 'Exit', redir: 'shop_enter'});
+                        }
+
+                        this.dialogueNum = d.redir;
+                    } else if (this.dialogue[this.dialogueNum].redir !== undefined) {
+                        // normal dialogue, but redir is defined
+                        this.dialogueNum = this.dialogue[this.dialogueNum].redir;
+                    } else {
+                        // normal dialogue, no redir (go to next line)
+                        this.dialogueNum += 1;
+                    }
+
+                    if (this.dialogue[this.dialogueNum] !== undefined) {
+                        this.game.currentArea.activeDialogues[0].setText(this.dialogue[this.dialogueNum].textLines);
+                        this.game.currentArea.activeDialogues[0].author = this.dialogue[this.dialogueNum].from;
+                    } else {
+                        this.dialogueNum = 0;
+                        other.movementLocked = false;
+                        this.game.popDialogue();
+                    }
+                }
+            }
         }
     }
 }
