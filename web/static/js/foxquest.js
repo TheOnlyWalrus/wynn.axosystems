@@ -71,18 +71,21 @@ class GameArea {
         if (this.heldKeys['d'] || this.heldKeys['ArrowRight']) {
             move.x += 1;
         }
-        if (this.pressedKeys['e']) {
+        if (this.pressedKeys['e'] || this.pressedKeys['Enter'] || this.pressedKeys['z']) {
             if (!this.player.showInventory) {
                 this.ray = new Ray(this, 100);
                 this.ray.setup(this.player, 'interact')
             } else {
                 this.player.inventoryBox.select();
             }
-            delete this.pressedKeys['e'];
+
+            this.pressedKeys['e'] ? delete this.pressedKeys['e'] : (
+                this.pressedKeys['Enter'] ? delete this.pressedKeys['Enter'] : delete this.pressedKeys['z']
+            );
         }
-        if (this.pressedKeys['i'] && this.currentArea.activeDialogues.length === 0) {
+        if ((this.pressedKeys['i'] ||  this.pressedKeys['c']) && this.currentArea.activeDialogues.length === 0) {
             this.player.toggleInventory();
-            delete this.pressedKeys['i'];
+            this.pressedKeys['i'] ? delete this.pressedKeys['i'] : delete this.pressedKeys['c'];
         }
         if (this.pressedKeys['1']) {
             this.transitionArea('grasslands');
