@@ -291,20 +291,18 @@ export class InventoryBox extends DisplayBox {
             this.context.fillText(typeName + ': ' + name, this.pos.x - 25 - this.width / 2, this.pos.y - this.height * 1.45 + (i + 1) * 20);
         }
 
-        for (let i = 0; i < Object.keys(this.game.player.baseStats).length; i++) {
-            let statValue = Object.values(this.game.player.baseStats)[i];
+        for (let i = 0; i < Object.keys(this.game.player.stats).length - 1; i++) {  // -1 because maxHealth is not a stat to display
+            let statName;
+            let statValue;
+            if (Object.keys(this.game.player.stats)[i].toLowerCase() === 'health') {
+                console.log(this.game.player.stats.maxHealth)
+                statValue = this.game.player.stats.health + '/' + this.game.player.stats.maxHealth;
+                statName = 'Health';
+            } else if (Object.keys(this.game.player.stats)[i].toLowerCase() !== 'maxhealth') {
+                statValue = Object.values(this.game.player.stats)[i];
 
-            let statName = Object.keys(this.game.player.baseStats)[i].toLowerCase();
-            statName = statName[0].toUpperCase() + statName.slice(1);
-
-            let equipped = Object.values(this.game.player.equipped);
-
-            for (let j = 0; j < equipped.length; j++) {
-                if (equipped[j] !== null) {
-                    if (equipped[j].stats[statName.toLowerCase()] && equipped[j].stats[statName.toLowerCase()] !== 0) {
-                        statValue += ' +' + equipped[j].stats[statName.toLowerCase()];
-                    }
-                }
+                statName = Object.keys(this.game.player.stats)[i].toLowerCase();
+                statName = statName[0].toUpperCase() + statName.slice(1);
             }
 
             this.context.fillStyle = '#FFFFFF';

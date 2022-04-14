@@ -21,12 +21,13 @@ export class Sprite {
     };
     move = {x:0,y:0};
     area;
-    baseStats = {
+    stats = {
         attack: 0,
         defense: 0,
         speed: 0,
-        health: 0
-    }
+        health: 0,
+        maxHealth: 0
+    };
 
     constructor(game, name, info) {
         this.game = game;
@@ -190,7 +191,7 @@ export class Enemy extends Sprite {
     constructor(game, name, info) {
         super(game, name, info);
         this.startHealth = info.startHealth;
-        this.maxHealth = info.maxHealth;
+        this.stats.maxHealth = info.maxHealth;
     }
 }
 
@@ -210,31 +211,50 @@ export class Player extends Sprite {
 
     constructor(game, name, info) {
         super(game, name, info);
-        this.baseStats.health = 100;
+        this.stats.health = 95;
+        this.stats.maxHealth = 100;
 
         this.inventoryBox = new InventoryBox(this.game, 0, 0, 700, 500, null);
     }
 
     use(item) {
-        console.log('use item player');
         if (!item.stats.reusable) {
             this.game.player.inventory.splice(this.game.player.inventory.indexOf(item), 1);
         }
-        // todo: use item
+
+        if (item.type === 'potion') {
+            if (item.stats.health) {
+                this.stats.health += item.stats.health;
+                if (this.stats.health > this.stats.maxHealth) {
+                    this.stats.health = this.stats.maxHealth;
+                }
+            }
+        }
     }
 
     equip(item) {
         item.equipped = true;
 
         if (this.equipped[item.type] !== null) {
+            this.stats.attack -= this.equipped[item.type].stats.attack ? this.equipped[item.type].stats.attack : 0;
+            this.stats.defense -= this.equipped[item.type].stats.defense ? this.equipped[item.type].stats.defense : 0;
+            this.stats.maxHealth -= this.equipped[item.type].stats.health ? this.equipped[item.type].stats.health : 0;
             this.equipped.weapon.equipped = false;
             this.equipped.weapon.holder = null;
         }
         this.equipped[item.type] = item;
         this.equipped[item.type].holder = this;
+        this.stats.attack += this.equipped[item.type].stats.attack ? this.equipped[item.type].stats.attack : 0;
+        this.stats.defense += this.equipped[item.type].stats.defense ? this.equipped[item.type].stats.defense : 0;
+        this.stats.maxHealth += this.equipped[item.type].stats.health ? this.equipped[item.type].stats.health : 0;
     }
 
     unequip(itemType) {
+        this.stats = {
+            attack: this.stats.attack - this.equipped[itemType].stats.attack,
+            defense: this.stats.defense - this.equipped[itemType].stats.defense
+        };
+        this.stats.maxHealth = this.stats.maxHealth - this.equipped[itemType].stats.health;
         this.equipped[itemType].equipped = false;
         this.equipped[itemType] = null;
     }
@@ -308,11 +328,21 @@ export class PartyMember extends Sprite {
     constructor(game, name, player, info) {
         super(game, name, info)
         this.player = player;
+        this.stats.maxHealth = this.stats.health = 100;
     }
 
     use(item) {
         if (!item.stats.reusable) {
             this.game.player.inventory.splice(this.game.player.inventory.indexOf(item), 1);
+        }
+
+        if (item.type === 'potion') {
+            if (item.stats.health) {
+                this.stats.health += item.stats.health;
+                if (this.stats.health > this.stats.maxHealth) {
+                    this.stats.health = this.stats.maxHealth;
+                }
+            }
         }
     }
 
@@ -320,14 +350,25 @@ export class PartyMember extends Sprite {
         item.equipped = true;
 
         if (this.equipped[item.type] !== null) {
+            this.stats.attack -= this.equipped[item.type].stats.attack ? this.equipped[item.type].stats.attack : 0;
+            this.stats.defense -= this.equipped[item.type].stats.defense ? this.equipped[item.type].stats.defense : 0;
+            this.stats.maxHealth -= this.equipped[item.type].stats.health ? this.equipped[item.type].stats.health : 0;
             this.equipped.weapon.equipped = false;
             this.equipped.weapon.holder = null;
         }
         this.equipped[item.type] = item;
         this.equipped[item.type].holder = this;
+        this.stats.attack += this.equipped[item.type].stats.attack ? this.equipped[item.type].stats.attack : 0;
+        this.stats.defense += this.equipped[item.type].stats.defense ? this.equipped[item.type].stats.defense : 0;
+        this.stats.maxHealth += this.equipped[item.type].stats.health ? this.equipped[item.type].stats.health : 0;
     }
 
     unequip(itemType) {
+        this.stats = {
+            attack: this.stats.attack - this.equipped[itemType].stats.attack,
+            defense: this.stats.defense - this.equipped[itemType].stats.defense
+        };
+        this.stats.maxHealth = this.stats.maxHealth - this.equipped[itemType].stats.health;
         this.equipped[itemType].equipped = false;
         this.equipped[itemType].holder = null;
         this.equipped[itemType] = null;
