@@ -1,4 +1,4 @@
-import {DialogueBox, DisplayBox, InventoryBox} from './dialogue.js'
+import {DialogueBox, InventoryBox} from './dialogue.js'
 
 export class Sprite {
     image = null;
@@ -275,8 +275,6 @@ export class Player extends Sprite {
                 this.inventoryBox.context = this.context;
             }
 
-            let x = this.pos.x + 60;
-            let y = this.pos.y + this.game.canvas.height / 2 + 60;
             this.inventoryBox.pos = {
                 x: this.pos.x + 60,
                 y: this.pos.y + this.game.canvas.height / 2 + 60
@@ -376,8 +374,6 @@ export class PartyMember extends Sprite {
 }
 
 export class Ray extends Sprite {
-    rayWidth = 10
-
     constructor(game, range) {
         super(game, 'ray', {});
         this.canvas = this.game.canvas;
@@ -437,7 +433,7 @@ export class NPC extends Sprite {
         fetch(`../../json/dialogue/${this.name}.json`)
             .then(res => res.json())
             .then(r => {
-                Object.keys(r).map((key, i) => {
+                Object.keys(r).map((key, _) => {
                     let from = r[key].from;
 
                     if (from === 'player') {
@@ -544,7 +540,7 @@ export class Merchant extends NPC {
         if (
             this.game.player.inventory.length < this.game.player.inventorySize
         ) {
-            let item = this.shopItems.find(i => i.id == dialoguePiece.itemId);  // == is fine here, sometimes the types dont match
+            let item = this.shopItems.find(i => i.id == dialoguePiece.itemId);  // == is fine here, sometimes the types don't match
 
             if (item) {
                 if (this.game.player.money >= item.price) {
