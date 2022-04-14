@@ -215,6 +215,14 @@ export class Player extends Sprite {
         this.inventoryBox = new InventoryBox(this.game, 0, 0, 700, 500, null);
     }
 
+    use(item) {
+        console.log('use item player');
+        if (!item.stats.reusable) {
+            this.game.player.inventory.splice(this.game.player.inventory.indexOf(item), 1);
+        }
+        // todo: use item
+    }
+
     equip(item) {
         item.equipped = true;
 
@@ -300,6 +308,12 @@ export class PartyMember extends Sprite {
     constructor(game, name, player, info) {
         super(game, name, info)
         this.player = player;
+    }
+
+    use(item) {
+        if (!item.stats.reusable) {
+            this.game.player.inventory.splice(this.game.player.inventory.indexOf(item), 1);
+        }
     }
 
     equip(item) {
@@ -489,7 +503,8 @@ export class Merchant extends NPC {
         if (
             this.game.player.inventory.length < this.game.player.inventorySize
         ) {
-            let item = this.shopItems.find(i => i.id == dialoguePiece.itemId);
+            let item = this.shopItems.find(i => i.id == dialoguePiece.itemId);  // == is fine here, sometimes the types dont match
+            console.log(item, this.game.player.money)
 
             if (item) {
                 if (this.game.player.money >= item.price) {
