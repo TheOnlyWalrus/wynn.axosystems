@@ -42,7 +42,7 @@ export class DisplayBox {
 export class DialogueBox extends DisplayBox {
     cursor = 0;
     textLines;
-    textMaxWidth = 510
+    textMaxWidth = 510;
 
     constructor(game, author, textLines) {
         super(game, 295, 110, 540, 165, textLines);
@@ -86,19 +86,19 @@ export class DialogueBox extends DisplayBox {
     draw() {
         // main rect
         this.context.fillStyle = '#000000';
-        this.context.fillRect(this.pos.x - this.width / 2, this.pos.y - this.height / 2, this.width, this.height);
+        this.context.fillRect(this.pos.x - this.width / 2, this.pos.y - 85, this.width, this.height);
 
         // purple inner rect
         this.context.strokeStyle = '#5A008A';
         this.context.lineWidth = 2.5;
-        this.context.strokeRect(this.pos.x - this.width / 2 + 5, this.pos.y - this.height / 2 + 5, this.width - 10, this.height - 10);
+        this.context.strokeRect(this.pos.x - this.width / 2 + 5, this.pos.y - 80, this.width - 10, this.height - 10);
 
         let lineNo = 0;
 
         // show name at top of box
         this.context.font = '20px courier new';
         this.context.fillStyle = '#66CBFF';
-        this.context.fillText(this.author.name, this.pos.x - this.width / 2 + 15, this.pos.y - this.height / 2 + 25);
+        this.context.fillText(this.author.name, this.pos.x - this.width / 2 + 15, this.pos.y - 60);
 
         // npc dialogue
         this.context.fillStyle = '#FFFFFF';
@@ -115,11 +115,15 @@ export class DialogueBox extends DisplayBox {
             text = this.splitText(text);  // text-wrap
 
             for (let j = 0; j < text.length; j++) {  // for each line in text
-                this.context.fillText(text[j], this.pos.x - this.width / 2 + 15, this.pos.y - this.height / 2 + 50 + lineNo * this.lineSpacing);
+                this.context.fillText(text[j], this.pos.x - this.width / 2 + 15, this.pos.y - 35 + lineNo * this.lineSpacing);
 
                 lineNo += 1;
             }
         }
+
+        this.height = (lineNo + 1) * this.lineSpacing + 30;
+        // this.pos.y = this.height / 2 + 25;
+        // console.log(this.pos.y)
     }
 
     getFirstChoiceIdx() {
@@ -295,7 +299,6 @@ export class InventoryBox extends DisplayBox {
             let statName;
             let statValue;
             if (Object.keys(this.game.player.stats)[i].toLowerCase() === 'health') {
-                console.log(this.game.player.stats.maxHealth)
                 statValue = this.game.player.stats.health + '/' + this.game.player.stats.maxHealth;
                 statName = 'Health';
             } else if (Object.keys(this.game.player.stats)[i].toLowerCase() !== 'maxhealth') {

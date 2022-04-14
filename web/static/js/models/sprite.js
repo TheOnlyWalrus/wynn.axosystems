@@ -545,7 +545,6 @@ export class Merchant extends NPC {
             this.game.player.inventory.length < this.game.player.inventorySize
         ) {
             let item = this.shopItems.find(i => i.id == dialoguePiece.itemId);  // == is fine here, sometimes the types dont match
-            console.log(item, this.game.player.money)
 
             if (item) {
                 if (this.game.player.money >= item.price) {
@@ -636,7 +635,6 @@ export class Merchant extends NPC {
 
                             this.dialogue[d.redir].textLines.push({text: 'Exit', redir: 'shop_enter'});
                         }
-
                         this.dialogueNum = d.redir;
                     } else if (this.dialogue[this.dialogueNum].redir !== undefined) {
                         // normal dialogue, but redir is defined
