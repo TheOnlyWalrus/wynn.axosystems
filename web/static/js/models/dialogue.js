@@ -42,7 +42,7 @@ export class DisplayBox {
 export class DialogueBox extends DisplayBox {
     cursor = 0;
     textLines;
-    textMaxWidth = 510
+    textMaxWidth = 510;
 
     constructor(game, author, textLines) {
         super(game, 295, 110, 540, 165, textLines);
@@ -86,19 +86,19 @@ export class DialogueBox extends DisplayBox {
     draw() {
         // main rect
         this.context.fillStyle = '#000000';
-        this.context.fillRect(this.pos.x - this.width / 2, this.pos.y - this.height / 2, this.width, this.height);
+        this.context.fillRect(this.pos.x - this.width / 2, this.pos.y - 85, this.width, this.height);
 
         // purple inner rect
         this.context.strokeStyle = '#5A008A';
         this.context.lineWidth = 2.5;
-        this.context.strokeRect(this.pos.x - this.width / 2 + 5, this.pos.y - this.height / 2 + 5, this.width - 10, this.height - 10);
+        this.context.strokeRect(this.pos.x - this.width / 2 + 5, this.pos.y - 80, this.width - 10, this.height - 10);
 
         let lineNo = 0;
 
         // show name at top of box
         this.context.font = '20px courier new';
         this.context.fillStyle = '#66CBFF';
-        this.context.fillText(this.author.name, this.pos.x - this.width / 2 + 15, this.pos.y - this.height / 2 + 25);
+        this.context.fillText(this.author.name, this.pos.x - this.width / 2 + 15, this.pos.y - 60);
 
         // npc dialogue
         this.context.fillStyle = '#FFFFFF';
@@ -115,11 +115,15 @@ export class DialogueBox extends DisplayBox {
             text = this.splitText(text);  // text-wrap
 
             for (let j = 0; j < text.length; j++) {  // for each line in text
-                this.context.fillText(text[j], this.pos.x - this.width / 2 + 15, this.pos.y - this.height / 2 + 50 + lineNo * this.lineSpacing);
+                this.context.fillText(text[j], this.pos.x - this.width / 2 + 15, this.pos.y - 35 + lineNo * this.lineSpacing);
 
                 lineNo += 1;
             }
         }
+
+        this.height = (lineNo + 1) * this.lineSpacing + 30;
+        // this.pos.y = this.height / 2 + 25;
+        // console.log(this.pos.y)
     }
 
     getFirstChoiceIdx() {
@@ -157,20 +161,22 @@ export class InventoryBox extends DisplayBox {
     prevCursorPos = 0;
     viewingInfo = false;
     viewingEquipping = false;
+    viewingUse = false;
     itemView = {};
     infoChoices = [];
-    cursorMode = 'main';
     types = [
         'weapon',
         'shield'
     ];
     equipChoices = [];
+    useChoices = [];
 
     constructor(game, x, y, w, h) {
         super(game, x, y, w, h, null);
 
         this.infoBox = new DisplayBox(this.game, x, y, 500, 100, null);
         this.equipBox = new DisplayBox(this.game, x, y, 500, 100, null);
+        this.useBox = new DisplayBox(this.game, x, y, 500, 100, null);
         this.infoChoices = [
             {
                 text: 'Equip',
@@ -210,17 +216,37 @@ export class InventoryBox extends DisplayBox {
                 action: () => this.equip(this.game.player)
             });
         }
+        if (this.useChoices.length < Object.values(this.game.player.party).length + 1) {
+            this.useChoices = [
+                {
+                    text: 'Exit',
+                    action: () => this.stopViewingUse()
+                }
+            ];
+            for (let p of Object.values(this.game.player.party)) {
+                this.useChoices.unshift({
+                    text: p.name,
+                    action: () => this.use(p)
+                });
+            }
+            this.useChoices.unshift({
+                text: 'Player',
+                action: () => this.use(this.game.player)
+            });
+        }
 
         if (this.items !== this.game.player.inventory) {
             this.items = this.game.player.inventory;
         }
 
         // set cursor to 0 if cursor is out of bounds (shouldn't happen because of setCursor)
-        if (this.cursor >= this.items.length && !this.viewingEquipping && !this.viewingInfo) {
+        if (this.cursor >= this.items.length && !this.viewingEquipping && !this.viewingInfo && !this.viewingUse) {
             this.cursor = 0;
-        } else if ((this.cursor >= this.equipChoices.length && this.viewingEquipping) || (this.cursor < 0 && this.viewingEquipping)) {
+        } else if ((this.cursor >= this.equipChoices.length && this.viewingEquipping && !this.viewingUse) || (this.cursor < 0 && this.viewingEquipping && !this.viewingUse)) {
             this.cursor = 1;
-        } else if (this.cursor >= this.infoChoices.length && this.viewingInfo && !this.viewingEquipping) {
+        } else if (this.cursor >= this.infoChoices.length && this.viewingInfo && !this.viewingEquipping && !this.viewingUse) {
+            this.cursor = 0;
+        } else if (this.cursor >= this.useChoices.length && this.viewingUse) {
             this.cursor = 0;
         }
 
@@ -269,20 +295,17 @@ export class InventoryBox extends DisplayBox {
             this.context.fillText(typeName + ': ' + name, this.pos.x - 25 - this.width / 2, this.pos.y - this.height * 1.45 + (i + 1) * 20);
         }
 
-        for (let i = 0; i < Object.keys(this.game.player.baseStats).length; i++) {
-            let statValue = Object.values(this.game.player.baseStats)[i];
+        for (let i = 0; i < Object.keys(this.game.player.stats).length - 1; i++) {  // -1 because maxHealth is not a stat to display
+            let statName;
+            let statValue;
+            if (Object.keys(this.game.player.stats)[i].toLowerCase() === 'health') {
+                statValue = this.game.player.stats.health + '/' + this.game.player.stats.maxHealth;
+                statName = 'Health';
+            } else if (Object.keys(this.game.player.stats)[i].toLowerCase() !== 'maxhealth') {
+                statValue = Object.values(this.game.player.stats)[i];
 
-            let statName = Object.keys(this.game.player.baseStats)[i].toLowerCase();
-            statName = statName[0].toUpperCase() + statName.slice(1);
-
-            let equipped = Object.values(this.game.player.equipped);
-
-            for (let j = 0; j < equipped.length; j++) {
-                if (equipped[j] !== null) {
-                    if (equipped[j][statName.toLowerCase()]) {
-                        statValue += ' +' + equipped[j][statName.toLowerCase()];
-                    }
-                }
+                statName = Object.keys(this.game.player.stats)[i].toLowerCase();
+                statName = statName[0].toUpperCase() + statName.slice(1);
             }
 
             this.context.fillStyle = '#FFFFFF';
@@ -293,7 +316,7 @@ export class InventoryBox extends DisplayBox {
         this.context.fillStyle = '#FFFAA0';
         this.context.fillText('Money: ' + this.game.player.money, this.pos.x - 25 - this.width / 2, this.pos.y - this.height * 1.45 + 20 * 22);
 
-        if (this.viewingInfo && !this.viewingEquipping) {
+        if (this.viewingInfo && !this.viewingEquipping && !this.viewingUse) {
             this.infoBox.pos = {
                 x: this.pos.x,
                 y: this.pos.y - 250
@@ -304,7 +327,7 @@ export class InventoryBox extends DisplayBox {
             this.infoBox.writeText(2, this.itemView.description);
 
             for (let i = 0; i < this.infoChoices.length; i++) {
-                if (!this.items[this.prevCursorPos].equipped && this.infoChoices[0].text !== 'Equip') {
+                if (!this.items[this.prevCursorPos].equipped && this.infoChoices[0].text !== 'Equip' && this.items[this.prevCursorPos].stats.usable === undefined) {
                     this.infoChoices[0] = {
                         'text': 'Equip',
                         'action': () => this.viewingEquipping = true
@@ -313,6 +336,11 @@ export class InventoryBox extends DisplayBox {
                     this.infoChoices[0] = {
                         'text': 'Unequip',
                         'action': () => this.unequip(this.items[this.prevCursorPos].holder)
+                    }
+                } else if (this.items[this.prevCursorPos].stats.usable && this.infoChoices[0].text !== 'Use') {
+                    this.infoChoices[0] = {
+                        'text': 'Use',
+                        'action': () => this.viewingUse = true
                     }
                 }
 
@@ -323,7 +351,7 @@ export class InventoryBox extends DisplayBox {
 
                 this.infoBox.writeText(i + 3, text);
             }
-        } else if (this.viewingEquipping) {
+        } else if (this.viewingEquipping && !this.viewingUse) {
             this.equipBox.pos = {
                 x: this.pos.x,
                 y: this.pos.y - 250
@@ -337,6 +365,20 @@ export class InventoryBox extends DisplayBox {
                 }
 
                 this.equipBox.writeText(i + 2, name);
+            }
+        } else if (this.viewingUse) {
+            this.useBox.pos = {
+                x: this.pos.x,
+                y: this.pos.y - 250
+            };
+            this.useBox.draw()
+            for (let i = 0; i < this.useChoices.length; i++) {
+                name = this.useChoices[i].text;
+                if (this.cursor === i) {
+                    name = '> ' + name;
+                }
+
+                this.useBox.writeText(i + 1, name);
             }
         }
     }
@@ -375,10 +417,12 @@ export class InventoryBox extends DisplayBox {
             this.itemView = this.items[this.cursor];
             this.prevCursorPos = this.cursor;
             this.cursor = 0;
-        } else if (this.viewingInfo && this.infoChoices[this.cursor] && !this.viewingEquipping) {
+        } else if (this.viewingInfo && this.infoChoices[this.cursor] && !this.viewingEquipping && !this.viewingUse) {
             this.infoChoices[this.cursor].action();
-        } else if (this.viewingEquipping) {
+        } else if (this.viewingEquipping && !this.viewingUse) {
             this.equipChoices[this.cursor].action();
+        } else if (this.viewingUse) {
+            this.useChoices[this.cursor].action();
         }
     }
 
@@ -396,6 +440,15 @@ export class InventoryBox extends DisplayBox {
         this.stopViewingInfo();
     }
 
+    use(who) {
+        who.use(this.items[this.prevCursorPos]);
+
+        this.stopViewingUse();
+        if (!this.items[this.prevCursorPos].stats.reusable) {
+            this.stopViewingInfo();
+        }
+    }
+
     stopViewingInfo() {
         this.viewingInfo = false;
         this.cursor = this.prevCursorPos;
@@ -403,6 +456,11 @@ export class InventoryBox extends DisplayBox {
 
     stopViewingEquipping() {
         this.viewingEquipping = false;
+        this.cursor = 0;
+    }
+
+    stopViewingUse() {
+        this.viewingUse = false;
         this.cursor = 0;
     }
 }

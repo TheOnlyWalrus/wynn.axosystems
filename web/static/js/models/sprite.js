@@ -1,4 +1,4 @@
-import {DialogueBox, DisplayBox, InventoryBox} from './dialogue.js'
+import {DialogueBox, InventoryBox} from './dialogue.js'
 
 export class Sprite {
     image = null;
@@ -21,12 +21,13 @@ export class Sprite {
     };
     move = {x:0,y:0};
     area;
-    baseStats = {
+    stats = {
         attack: 0,
         defense: 0,
         speed: 0,
-        health: 0
-    }
+        health: 0,
+        maxHealth: 0
+    };
 
     constructor(game, name, info) {
         this.game = game;
@@ -190,7 +191,7 @@ export class Enemy extends Sprite {
     constructor(game, name, info) {
         super(game, name, info);
         this.startHealth = info.startHealth;
-        this.maxHealth = info.maxHealth;
+        this.stats.maxHealth = info.maxHealth;
     }
 }
 
@@ -210,23 +211,50 @@ export class Player extends Sprite {
 
     constructor(game, name, info) {
         super(game, name, info);
-        this.baseStats.health = 100;
+        this.stats.health = 95;
+        this.stats.maxHealth = 100;
 
         this.inventoryBox = new InventoryBox(this.game, 0, 0, 700, 500, null);
+    }
+
+    use(item) {
+        if (!item.stats.reusable) {
+            this.game.player.inventory.splice(this.game.player.inventory.indexOf(item), 1);
+        }
+
+        if (item.type === 'potion') {
+            if (item.stats.health) {
+                this.stats.health += item.stats.health;
+                if (this.stats.health > this.stats.maxHealth) {
+                    this.stats.health = this.stats.maxHealth;
+                }
+            }
+        }
     }
 
     equip(item) {
         item.equipped = true;
 
         if (this.equipped[item.type] !== null) {
+            this.stats.attack -= this.equipped[item.type].stats.attack ? this.equipped[item.type].stats.attack : 0;
+            this.stats.defense -= this.equipped[item.type].stats.defense ? this.equipped[item.type].stats.defense : 0;
+            this.stats.maxHealth -= this.equipped[item.type].stats.health ? this.equipped[item.type].stats.health : 0;
             this.equipped.weapon.equipped = false;
             this.equipped.weapon.holder = null;
         }
         this.equipped[item.type] = item;
         this.equipped[item.type].holder = this;
+        this.stats.attack += this.equipped[item.type].stats.attack ? this.equipped[item.type].stats.attack : 0;
+        this.stats.defense += this.equipped[item.type].stats.defense ? this.equipped[item.type].stats.defense : 0;
+        this.stats.maxHealth += this.equipped[item.type].stats.health ? this.equipped[item.type].stats.health : 0;
     }
 
     unequip(itemType) {
+        this.stats = {
+            attack: this.stats.attack - this.equipped[itemType].stats.attack,
+            defense: this.stats.defense - this.equipped[itemType].stats.defense
+        };
+        this.stats.maxHealth = this.stats.maxHealth - this.equipped[itemType].stats.health;
         this.equipped[itemType].equipped = false;
         this.equipped[itemType] = null;
     }
@@ -247,8 +275,6 @@ export class Player extends Sprite {
                 this.inventoryBox.context = this.context;
             }
 
-            let x = this.pos.x + 60;
-            let y = this.pos.y + this.game.canvas.height / 2 + 60;
             this.inventoryBox.pos = {
                 x: this.pos.x + 60,
                 y: this.pos.y + this.game.canvas.height / 2 + 60
@@ -300,20 +326,47 @@ export class PartyMember extends Sprite {
     constructor(game, name, player, info) {
         super(game, name, info)
         this.player = player;
+        this.stats.maxHealth = this.stats.health = 100;
+    }
+
+    use(item) {
+        if (!item.stats.reusable) {
+            this.game.player.inventory.splice(this.game.player.inventory.indexOf(item), 1);
+        }
+
+        if (item.type === 'potion') {
+            if (item.stats.health) {
+                this.stats.health += item.stats.health;
+                if (this.stats.health > this.stats.maxHealth) {
+                    this.stats.health = this.stats.maxHealth;
+                }
+            }
+        }
     }
 
     equip(item) {
         item.equipped = true;
 
         if (this.equipped[item.type] !== null) {
+            this.stats.attack -= this.equipped[item.type].stats.attack ? this.equipped[item.type].stats.attack : 0;
+            this.stats.defense -= this.equipped[item.type].stats.defense ? this.equipped[item.type].stats.defense : 0;
+            this.stats.maxHealth -= this.equipped[item.type].stats.health ? this.equipped[item.type].stats.health : 0;
             this.equipped.weapon.equipped = false;
             this.equipped.weapon.holder = null;
         }
         this.equipped[item.type] = item;
         this.equipped[item.type].holder = this;
+        this.stats.attack += this.equipped[item.type].stats.attack ? this.equipped[item.type].stats.attack : 0;
+        this.stats.defense += this.equipped[item.type].stats.defense ? this.equipped[item.type].stats.defense : 0;
+        this.stats.maxHealth += this.equipped[item.type].stats.health ? this.equipped[item.type].stats.health : 0;
     }
 
     unequip(itemType) {
+        this.stats = {
+            attack: this.stats.attack - this.equipped[itemType].stats.attack,
+            defense: this.stats.defense - this.equipped[itemType].stats.defense
+        };
+        this.stats.maxHealth = this.stats.maxHealth - this.equipped[itemType].stats.health;
         this.equipped[itemType].equipped = false;
         this.equipped[itemType].holder = null;
         this.equipped[itemType] = null;
@@ -321,8 +374,6 @@ export class PartyMember extends Sprite {
 }
 
 export class Ray extends Sprite {
-    rayWidth = 10
-
     constructor(game, range) {
         super(game, 'ray', {});
         this.canvas = this.game.canvas;
@@ -382,7 +433,7 @@ export class NPC extends Sprite {
         fetch(`../../json/dialogue/${this.name}.json`)
             .then(res => res.json())
             .then(r => {
-                Object.keys(r).map((key, i) => {
+                Object.keys(r).map((key, _) => {
                     let from = r[key].from;
 
                     if (from === 'player') {
@@ -489,7 +540,7 @@ export class Merchant extends NPC {
         if (
             this.game.player.inventory.length < this.game.player.inventorySize
         ) {
-            let item = this.shopItems.find(i => i.id == dialoguePiece.itemId);
+            let item = this.shopItems.find(i => i.id == dialoguePiece.itemId);  // == is fine here, sometimes the types don't match
 
             if (item) {
                 if (this.game.player.money >= item.price) {
@@ -580,7 +631,6 @@ export class Merchant extends NPC {
 
                             this.dialogue[d.redir].textLines.push({text: 'Exit', redir: 'shop_enter'});
                         }
-
                         this.dialogueNum = d.redir;
                     } else if (this.dialogue[this.dialogueNum].redir !== undefined) {
                         // normal dialogue, but redir is defined

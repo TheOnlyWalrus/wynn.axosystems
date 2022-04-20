@@ -1,5 +1,6 @@
 import {NPC, Merchant} from "./sprite.js";
 import {DisplayBox} from "./dialogue.js";
+import {Item} from "./item.js";
 
 export class Area {
     transitions = {};
@@ -64,16 +65,55 @@ export class Grasslands extends Area {
         this.sprites[0] = this.game.player;
         this.sprites[0].dims = {w: 20, h: 20};
         this.sprites[0].pos = {x: 100, y: 100};
-        this.game.player.inventory.push({name: 'Sword', price: 10, sellPrice: 5, description: 'A basic sword.', type: 'weapon', attack: 5, id: 0, equipped: false, holder: this.game.player});
-        this.game.player.inventory.push({name: 'Sword', price: 10, sellPrice: 5, description: 'A basic sword.', type: 'weapon', attack: 5, id: 0, equipped: false, holder: this.game.player});
-        this.game.player.inventory.push({name: 'Sword', price: 10, sellPrice: 5, description: 'A basic sword.', type: 'weapon', attack: 5, id: 0, equipped: false, holder: this.game.player});
+
+        let sword = new Item(this.game, 'Basic Sword', {
+            description: 'A basic sword',
+            type: 'weapon',
+            price: 10,
+            sellPrice: 5,
+            id: 0,
+            stats: {
+                attack: 5,
+                defense: 0
+            }
+        });
+        let shield = new Item(this.game, 'Basic Shield', {
+            description: 'A basic shield',
+            type: 'shield',
+            price: 10,
+            sellPrice: 5,
+            id: 1,
+            stats: {
+                attack: 0,
+                defense: 5
+            }
+        });
+        // todo: maybe create usable item class
+        let healthPotion = new Item(this.game, 'Health Potion', {
+            description: 'A health potion',
+            type: 'potion',
+            price: 5,
+            sellPrice: 3,
+            id: 2,
+            stats: {
+                health: 10,
+                usable: true,
+            }
+        });
+        sword.holder = this.game.player;
+        this.game.player.inventory.push(sword.clone());
+        this.game.player.inventory.push(sword.clone());
+        this.game.player.inventory.push(healthPotion.clone());
+        this.game.player.inventory.push(shield.clone());
+        this.game.player.inventory.push(shield.clone());
+        sword.holder = this.game.player;
 
         this.sprites[1] = new Merchant(this.game, 'merchant1', {
             species: 'fox', affiliation: 'friendly',
             shopItems: [
-                {name: 'Sword', price: 10, sellPrice: 5, description: 'A basic sword.', type: 'weapon', attack: 5, id: 0, equipped: false, holder: null},
-                {name: 'Shield', price: 10, sellPrice: 5, description: 'A basic shield.', type: 'shield', defense: 5, id: 1, equipped: false, holder: null},
-                {name: 'Health Potion', price: 5, sellPrice: 3, description: 'A potion made for healing.', type: 'potion', effectAmount: 5, id: 2, equipped: false, holder: null},
+                sword,
+                shield,
+                healthPotion,
             ]
         });
         this.sprites[1].dims = {w: 20, h: 20};
@@ -98,12 +138,47 @@ export class Desert extends Area {
         this.sprites[0].dims = {w: 20, h: 20};
         this.sprites[0].pos = {x: 100, y: 100};
 
+        let sword = new Item(this.game, 'Basic Sword', {
+            description: 'A basic sword',
+            type: 'weapon',
+            price: 10,
+            sellPrice: 5,
+            id: 0,
+            stats: {
+                attack: 5,
+                defense: 0
+            }
+        });
+        let shield = new Item(this.game, 'Basic Shield', {
+            description: 'A basic shield',
+            type: 'shield',
+            price: 10,
+            sellPrice: 5,
+            id: 1,
+            stats: {
+                attack: 0,
+                defense: 5
+            }
+        });
+        // todo: maybe create usable item class
+        let healthPotion = new Item(this.game, 'Health Potion', {
+            description: 'A health potion',
+            type: 'potion',
+            price: 5,
+            sellPrice: 3,
+            id: 2,
+            stats: {
+                health: 10,
+                usable: true
+            }
+        });
+
         this.sprites[1] = new Merchant(this.game, 'merchant1', {
             species: 'fox', affiliation: 'friendly',
             shopItems: [
-                {name: 'Sword', price: 10, sellPrice: 5, description: 'A basic sword.', type: 'weapon', attack: 5, id: 0, equipped: false, holder: null},
-                {name: 'Shield', price: 10, sellPrice: 5, description: 'A basic shield.', type: 'shield', defense: 5, id: 1, equipped: false, holder: null},
-                {name: 'Health Potion', price: 5, sellPrice: 3, description: 'A potion made for healing.', type: 'potion', effectAmount: 5, id: 2, equipped: false, holder: null},
+                sword,
+                shield,
+                healthPotion,
             ]
         });
         this.sprites[1].dims = {w: 20, h: 20};
