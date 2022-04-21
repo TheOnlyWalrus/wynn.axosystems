@@ -66,9 +66,16 @@ export class Sprite {
             }
 
             if (!this.movementLocked) {
+                let moveVec = this.move;
+                let magnitude = Math.sqrt(moveVec.x * moveVec.x + moveVec.y * moveVec.y);
+                if (magnitude !== 0) {
+                    moveVec.x = moveVec.x / magnitude;
+                    moveVec.y = moveVec.y / magnitude;
+                }
+
                 this.pos = {
-                    x: this.pos.x + this.move.x * this.moveSpeed,
-                    y: this.pos.y + this.move.y * this.moveSpeed
+                    x: this.pos.x + moveVec.x * this.moveSpeed,
+                    y: this.pos.y + moveVec.y * this.moveSpeed
                 };
 
                 if (this.move.x !== 0) {
