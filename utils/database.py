@@ -10,17 +10,17 @@ class DBException(Exception):
 
 class BaseDBConnection:
     def __init__(self, host, db_name, user):
-        self.conn: typing.Optional[asyncpg.Connection] = None
+        self.pool: typing.Optional[asyncpg.pool.Pool] = None
         self.host = host
         self.db_name = db_name
         self.user = user
 
     async def connect(self):
         """Do not re-implement in child classes"""
-        if self.conn:
+        if self.pool:
             raise DBException(f'Connection to database {self.db_name} already established.')
 
-        self.conn = await asyncpg.connect(
+        self.pool = await asyncpg.create_pool(
             user=self.user,
             password=os.environ.get('WEB_USER_DB_PASSWORD'),
             database=self.db_name,
@@ -29,12 +29,12 @@ class BaseDBConnection:
 
     async def close(self):
         """Do not re-implement in child classes"""
-        if not self.conn:
+        if not self.pool:
             raise DBException(f'Connection to database {self.db_name} does not exist.')
 
-        await self.conn.close()
-        self.conn = None
+        await self.pool.close()
+        self.pool = None
 
     @property
     def is_connected(self):
-        return bool(self.conn)
+        return self.pool is not None

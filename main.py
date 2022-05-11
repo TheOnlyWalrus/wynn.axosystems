@@ -13,16 +13,17 @@ import os
 
 class WebDBConnection(BaseDBConnection):
     async def get_user(self, uid=None, username=None):
-        if not self.conn:
+        if not self.pool:
             await self.connect()
 
         if not uid and not username:
             raise Exception('Missing an argument in WebDBConnection.get_user')
 
-        if uid is not None:
-            user = await self.conn.fetchrow('SELECT * FROM wynn.users WHERE id=($1)', uid)
-        else:
-            user = await self.conn.fetchrow('SELECT * FROM wynn.users WHERE username ILIKE ($1)', username)
+        async with self.pool.acquire() as conn:
+            if uid is not None:
+                user = await conn.fetchrow('SELECT * FROM wynn.users WHERE id=($1)', uid)
+            else:
+                user = await conn.fetchrow('SELECT * FROM wynn.users WHERE username ILIKE ($1)', username)
 
         return user
 
@@ -85,6 +86,11 @@ async def projects_zote(request: Request):
     return templates.TemplateResponse('zote.html', {'request': request})
 
 
+@app.get('/projects/2')
+async def projects_2(request: Request):
+    return templates.TemplateResponse('2.html', {'request': request})
+
+
 @app.get('/water')
 async def water(request: Request):
     return templates.TemplateResponse('water.html', {'request': request})
@@ -98,7 +104,7 @@ async def post_api_upload(request: Request):
     form = await request.form()
     file = form.get('file')
     if not file:
-        return {}  ## should probably actually send something back
+        return {}  # should probably actually send something back
 
     if not check_file(file.filename):
         return {'status': 415, 'message': 'Invalid media type.'}
