@@ -3,18 +3,23 @@ let ctx = canvas.getContext('2d');
 const CANVAS_WIDTH = canvas.width;
 const CANVAS_HEIGHT = canvas.height;
 
-const TOWER_WIDTH = 24;
-const TOWER_HEIGHT = 24;
-
 /*
  * Check if enemy in radius of tower from tower object, not main update loop or from enemy object
  */
 
+function normalize2D(v) {
+    let len = Math.sqrt(v.x * v.x + v.y * v.y);
+    return { x: v.x / len, y: v.y / len };
+}
+
 class Tower {
-    constructor(x, y, color, damage, fireRate, range, type) {
+    constructor(x, y, texture, color, damage, fireRate, range, type) {
         // x and y are the coordinates of the tower center
         this.x = x;
         this.y = y;
+        this.texture = texture;
+        this.width = texture.size.w;
+        this.height = texture.size.h;
         this.color = color;
         this.damage = damage;
         this.fireRate = fireRate;
@@ -23,16 +28,24 @@ class Tower {
     }
 
     draw() {
-        ctx.fillStyle = this.color;
+        // top left corner of the tower
+        let _x = this.x - this.width / 2;
+        let _y = this.y - this.height / 2;
 
-        let _x = this.x - TOWER_WIDTH / 2;
-        let _y = this.y - TOWER_HEIGHT / 2;
+        ctx.drawImage(this.texture.img, _x, _y, this.width, this.height);
 
-        ctx.fillRect(_x, _y, TOWER_WIDTH, TOWER_HEIGHT);
+        this.drawRange();  // draw range of tower
+    }
+
+    drawRange() {
+        ctx.strokeStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.range, 0, 2 * Math.PI);  // x and y are center for circle
+        ctx.stroke();
     }
 
     update() {
-        this.draw();
+        this.draw();  // draw the tower last
     }
 }
 
@@ -43,13 +56,19 @@ let sprites = [
 const TEXTURES = {
     'grass': {
         path: '/img/2/grass.png',
+        size: { w: 16, h: 16 },
         img: null
     },
+    'tower': {
+        path: '/img/2/tower.png',
+        size: { w: 32, h: 32 },
+        img: null
+    }
 };
 let texturesLoaded = false;
 
 for (let texture in TEXTURES) {
-    let img = new Image(16, 16);
+    let img = new Image(TEXTURES[texture].size.w, TEXTURES[texture].size.h);
     img.onload = () => {
         TEXTURES[texture].img = img;
     }
@@ -61,7 +80,7 @@ let deltaTime = 0;
 let lastFrameTime = new Date().getTime();
 let updater = setInterval(() => update(), 1000 / FPS);
 
-sprites.push(new Tower(100, 100, '#FF0000', 1, 1, 1, 'tower'));
+sprites.push(new Tower(100, 100, TEXTURES['tower'], '#ff0000', 1, 1, 50, 'tower'));
 
 function clear() {
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
